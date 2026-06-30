@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+*.log
+
+# Capacitor (plataformas nativas geradas)
+/android
+/ios
+
+# Tipos gerados do OpenAPI
+src/lib/api-schema.d.ts

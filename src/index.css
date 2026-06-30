@@ -1,0 +1,21 @@
+/* Tema da marca (CSS variables) — vem do pacote design-tokens.
+   Trocar este import por outro tema = rebranding, sem mexer em componentes. */
+@import '@orcalink/design-tokens/theme-dark.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
