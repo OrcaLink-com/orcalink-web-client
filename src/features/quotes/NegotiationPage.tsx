@@ -13,7 +13,7 @@ import {
 import { formatBRL } from '../../lib/format';
 import { useQuoteRealtime } from '../../lib/realtime';
 import { StateLineHeader, type StateLine } from '../../components/StateLineHeader';
-import { Avatar, Button, RatingStars, StatusChip } from '../../components/ui';
+import { Avatar, StatusChip } from '../../components/ui';
 import {
   IconAgenda,
   IconBack,
@@ -24,6 +24,7 @@ import {
   IconPayment,
   IconProposal,
   IconScheduled,
+  IconSend,
   IconStar,
   IconWaiting,
 } from '../../components/icons';
@@ -142,59 +143,84 @@ export function NegotiationPage() {
   const chip = conversation ? deriveNegotiationChip(conversation) : null;
 
   return (
-    <div className="flex h-[calc(100vh-2rem)] flex-col">
-      <header className="flex items-center gap-3 border-b border-border pb-3">
+    <div className="mx-auto flex h-[calc(100dvh-1rem)] max-w-2xl flex-col overflow-hidden rounded-large border border-border">
+      {/* Cabeçalho estilo WhatsApp */}
+      <header className="flex items-center gap-3 border-b border-border bg-content1 px-3 py-2.5">
         <Link to={`/orcamento/${quoteId}`} className="text-text-muted hover:text-foreground">
-          <IconBack size={20} />
+          <IconBack size={22} />
         </Link>
         <Avatar name={conversation?.counterpartName ?? '?'} />
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-base font-semibold leading-tight">
             {conversation?.counterpartName ?? 'Negociação'}
           </h2>
-          {conversation && (
-            <RatingStars value={conversation.counterpartRating} count={conversation.counterpartRatingCount} />
-          )}
+          <div className="flex items-center gap-1.5 text-xs text-text-muted">
+            {isActive ? (
+              <>
+                <span className="h-2 w-2 rounded-full bg-success" />
+                <span>online</span>
+              </>
+            ) : (
+              <span>conversa encerrada</span>
+            )}
+          </div>
         </div>
         {chip && <StatusChip label={chip.label} varName={chip.varName} size="sm" />}
       </header>
 
-      <div className="my-2.5">
+      {/* State line (próxima ação) logo abaixo do header */}
+      <div className="border-b border-border bg-content1/60 px-3 py-2">
         <StateLineHeader state={stateLine} />
       </div>
 
-      {isBlocked && (
-        <div className="mb-2 rounded-md bg-card px-3 py-2 text-center text-xs text-text-muted">
-          Esta negociação foi encerrada porque você escolheu outro profissional.
-        </div>
-      )}
+      {/* Área de mensagens */}
+      <div
+        ref={scrollRef}
+        className="flex-1 space-y-1 overflow-y-auto bg-background px-3 py-3"
+      >
+        <p className="mx-auto mb-2 max-w-sm rounded-md bg-content1 px-3 py-1.5 text-center text-[11px] text-text-muted">
+          🔒 As mensagens e ações desta conversa ficam registradas com segurança.
+        </p>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto rounded-lg border border-border bg-card/40 p-3">
+        {isBlocked && (
+          <div className="mx-auto max-w-sm rounded-md bg-content1 px-3 py-2 text-center text-xs text-text-muted">
+            Esta negociação foi encerrada porque você escolheu outro profissional.
+          </div>
+        )}
+
         {messagesQ.isLoading && <p className="text-text-muted">Carregando…</p>}
         {messagesQ.data?.length === 0 && (
           <p className="text-center text-xs text-text-muted">
             Sem mensagens ainda. Escreva algo abaixo para começar.
           </p>
         )}
-        {messagesQ.data?.map((m) => {
+        {messagesQ.data?.map((m, i) => {
+          const prev = messagesQ.data![i - 1];
+          const showDay = !prev || !sameDay(prev.createdAt, m.createdAt);
           const isActionableCard =
             m.type === 'PROPOSAL' && !!actionableProposalId && m.proposal?.id === actionableProposalId;
-          // A visita que aguarda o cliente vira um card interativo no próprio fluxo (sem card fixo no topo).
-          if (m.id === awaitingVisitMsgId && awaitingVisit) {
-            return (
-              <ul key={m.id} className="my-2">
-                <VisitItem visit={awaitingVisit} quoteId={quoteId} />
-              </ul>
-            );
-          }
+          const visitCard = m.id === awaitingVisitMsgId && awaitingVisit;
           return (
             <div key={m.id} ref={isActionableCard ? actionableRef : undefined}>
-              <MessageBubble
-                message={m}
-                mine={m.senderId === user?.id}
-                visits={providerVisits}
-                actions={proposalActions}
-              />
+              {showDay && (
+                <div className="my-2 flex justify-center">
+                  <span className="rounded-full bg-content1 px-3 py-1 text-[11px] font-medium text-text-muted">
+                    {dayLabel(m.createdAt)}
+                  </span>
+                </div>
+              )}
+              {visitCard ? (
+                <ul className="my-2">
+                  <VisitItem visit={awaitingVisit} quoteId={quoteId} />
+                </ul>
+              ) : (
+                <MessageBubble
+                  message={m}
+                  mine={m.senderId === user?.id}
+                  visits={providerVisits}
+                  actions={proposalActions}
+                />
+              )}
             </div>
           );
         })}
@@ -214,20 +240,47 @@ export function NegotiationPage() {
         )}
       </div>
 
-      <form onSubmit={onSend} className="mt-2 flex items-center gap-2">
+      <form onSubmit={onSend} className="flex items-center gap-2 border-t border-border bg-content1 px-2.5 py-2">
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
           disabled={!isActive}
-          placeholder={isActive ? 'Escreva uma mensagem…' : 'Conversa encerrada'}
-          className="h-11 flex-1 rounded-full border border-border bg-content1 px-4 text-sm outline-none transition-colors focus:border-primary disabled:opacity-60"
+          placeholder={isActive ? 'Mensagem' : 'Conversa encerrada'}
+          className="h-11 flex-1 rounded-full border border-border bg-background px-4 text-sm outline-none transition-colors focus:border-primary disabled:opacity-60"
         />
-        <Button type="submit" disabled={!isActive || sendMessage.isPending}>
-          Enviar
-        </Button>
+        <button
+          type="submit"
+          disabled={!isActive || sendMessage.isPending || !text.trim()}
+          aria-label="Enviar"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-colors hover:bg-brand-secondary disabled:opacity-50"
+        >
+          <IconSend size={20} />
+        </button>
       </form>
     </div>
   );
+}
+
+/** Mesmo dia do calendário? */
+function sameDay(a: string, b: string): boolean {
+  const da = new Date(a);
+  const db = new Date(b);
+  return (
+    da.getFullYear() === db.getFullYear() &&
+    da.getMonth() === db.getMonth() &&
+    da.getDate() === db.getDate()
+  );
+}
+
+/** "Hoje" / "Ontem" / data. */
+function dayLabel(iso: string): string {
+  const d = new Date(iso);
+  const today = new Date();
+  const yst = new Date();
+  yst.setDate(today.getDate() - 1);
+  if (sameDay(iso, today.toISOString())) return 'Hoje';
+  if (sameDay(iso, yst.toISOString())) return 'Ontem';
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
 }
 
 function deriveStateLine(
@@ -292,15 +345,28 @@ function MessageBubble({
   actions?: ProposalActionCtx;
 }) {
   if (message.type === 'TEXT' || message.type === 'IMAGE') {
+    const time = new Date(message.createdAt).toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
     return (
-      <div className={`my-1 flex ${mine ? 'justify-end' : 'justify-start'}`}>
-        <span
-          className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-            mine ? 'bg-brand text-white' : 'bg-card-2 text-text'
+      <div className={`my-0.5 flex ${mine ? 'justify-end' : 'justify-start'}`}>
+        <div
+          className={`max-w-[78%] px-3 py-2 text-sm shadow-sm ${
+            mine
+              ? 'rounded-2xl rounded-br-sm bg-primary text-white'
+              : 'rounded-2xl rounded-bl-sm bg-content2 text-foreground'
           }`}
         >
-          {message.body}
-        </span>
+          <p className="whitespace-pre-wrap break-words">{message.body}</p>
+          <span
+            className={`mt-0.5 block text-right text-[10px] ${
+              mine ? 'text-white/70' : 'text-text-muted'
+            }`}
+          >
+            {time}
+          </span>
+        </div>
       </div>
     );
   }

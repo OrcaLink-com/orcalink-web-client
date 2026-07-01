@@ -40,47 +40,65 @@ export function PaymentSection({ quoteId, status }: { quoteId: string; status: Q
         <span className="text-xl font-bold text-brand">{formatBRL(total)}</span>
       </div>
 
-      {status === 'WAITING_PAYMENT' && pay.data?.pixCopyPaste && (
-        <div className="space-y-2">
-          <p className="flex items-start gap-2 rounded-md bg-card-2 px-3 py-2 text-sm text-text-muted">
-            <IconWaiting size={16} className="mt-0.5 shrink-0" />
-            Aguardando o pagamento. Copie o código PIX abaixo, pague no seu banco e a confirmação
-            aparece aqui automaticamente.
-          </p>
-          <p className="text-xs font-medium text-text-muted">PIX copia e cola</p>
-          <textarea
-            readOnly
-            value={pay.data.pixCopyPaste}
-            onFocus={(e) => e.currentTarget.select()}
-            className="w-full break-all rounded-md border border-border bg-bg px-2 py-1.5 text-xs"
-            rows={3}
-          />
-          {pay.data.invoiceUrl && (
-            <a
-              href={pay.data.invoiceUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="block text-center text-sm text-brand underline"
-            >
-              Abrir fatura
-            </a>
-          )}
-        </div>
-      )}
-
-      {status === 'WAITING_PAYMENT' && !pay.data?.pixCopyPaste && (
+      {status === 'WAITING_PAYMENT' && (
         <>
           <p className="mb-3 text-xs text-text-muted">
             Pague com segurança — o valor fica retido até você confirmar a conclusão do serviço.
           </p>
           {pay.isError && <p className="mb-2 text-sm text-danger">{(pay.error as Error).message}</p>}
-          <button
-            onClick={() => pay.mutate()}
-            disabled={pay.isPending}
-            className="w-full rounded-md bg-brand px-4 py-2.5 font-medium text-white disabled:opacity-50"
-          >
-            {pay.isPending ? 'Processando…' : 'Pagar com PIX'}
-          </button>
+
+          {/* PIX copia e cola (quando o Asaas devolve o payload PIX direto). */}
+          {pay.data?.pixCopyPaste ? (
+            <div className="space-y-2">
+              <p className="flex items-start gap-2 rounded-md bg-card-2 px-3 py-2 text-sm text-text-muted">
+                <IconWaiting size={16} className="mt-0.5 shrink-0" />
+                Copie o código PIX, pague no seu banco e a confirmação aparece aqui automaticamente.
+              </p>
+              <p className="text-xs font-medium text-text-muted">PIX copia e cola</p>
+              <textarea
+                readOnly
+                value={pay.data.pixCopyPaste}
+                onFocus={(e) => e.currentTarget.select()}
+                className="w-full break-all rounded-md border border-border bg-bg px-2 py-1.5 text-xs"
+                rows={3}
+              />
+              {pay.data.invoiceUrl && (
+                <a
+                  href={pay.data.invoiceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block rounded-md bg-brand px-4 py-2.5 text-center font-medium text-white"
+                >
+                  Abrir fatura e pagar
+                </a>
+              )}
+            </div>
+          ) : pay.data?.invoiceUrl ? (
+            /* Fatura criada (PIX/cartão escolhidos na página do Asaas). */
+            <a
+              href={pay.data.invoiceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="block rounded-md bg-brand px-4 py-2.5 text-center font-medium text-white"
+            >
+              Ir para o pagamento →
+            </a>
+          ) : (
+            /* Ainda não criou a cobrança: cria e já abre a fatura. */
+            <button
+              onClick={() =>
+                pay.mutate(undefined, {
+                  onSuccess: (data) => {
+                    if (data.invoiceUrl) window.open(data.invoiceUrl, '_blank', 'noopener');
+                  },
+                })
+              }
+              disabled={pay.isPending}
+              className="w-full rounded-md bg-brand px-4 py-2.5 font-medium text-white disabled:opacity-50"
+            >
+              {pay.isPending ? 'Processando…' : 'Pagar agora'}
+            </button>
+          )}
         </>
       )}
 

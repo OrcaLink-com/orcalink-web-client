@@ -55,6 +55,7 @@ export {
   LuArrowRight as IconArrowRight,
   LuBuilding2 as IconCity,
   LuGlobe as IconGlobe,
+  LuSend as IconSend,
 } from 'react-icons/lu';
 
 export type { IconType } from 'react-icons';

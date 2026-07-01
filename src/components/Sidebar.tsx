@@ -25,7 +25,7 @@ export function Sidebar() {
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-border bg-background px-3 py-5 lg:flex">
       <Link to="/" className="px-2" aria-label={brand.name}>
-        <img src="/brand/logo.svg" alt={brand.name} className="h-8 w-auto" />
+        <img src="/brand/logo.svg" alt={brand.name} className="h-11 w-auto" />
       </Link>
 
       <Link
