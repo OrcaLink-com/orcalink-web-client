@@ -1,0 +1,23 @@
+<svg viewBox="0 0 560 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OrcaLink"
+     font-family="Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">
+  <defs>
+    <linearGradient id="olw-b" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#60a5fa"/>
+      <stop offset=".55" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="olw-r" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1d4ed8" stop-opacity=".4"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(75,75)">
+    <circle r="52" fill="none" stroke="url(#olw-r)" stroke-width="7"/>
+    <g transform="translate(0,4) scale(0.92)" fill="url(#olw-b)">
+      <path d="M 0,33 C -10,20 -40,10 -51,-36 C -30,-12 -12,-9 0,-3 C 12,-9 30,-12 51,-36 C 40,10 10,20 0,33 Z"/>
+    </g>
+  </g>
+  <text x="150" y="92" font-size="54" font-weight="800" letter-spacing="-1">
+    <tspan fill="#f8fafc">Orca</tspan><tspan fill="url(#olw-b)">Link</tspan>
+  </text>
+</svg>

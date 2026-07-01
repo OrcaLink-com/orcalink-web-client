@@ -110,78 +110,93 @@ export function NewQuotePage() {
     <div className="mx-auto max-w-xl space-y-6 pb-4">
       <PageHeader title="Novo orçamento" subtitle="Descreva o serviço e receba propostas." backTo="/" />
 
-      <form onSubmit={onSubmit} className="space-y-5">
-        <Select
-          label="Categoria"
-          placeholder="Selecione…"
-          isDisabled={loadingCategories}
-          options={(categories ?? []).map((c) => ({ value: c.id, label: c.name }))}
-          value={categoryId}
-          onChange={setCategoryId}
-          error={errors.categoryId}
-        />
+      <form onSubmit={onSubmit} className="space-y-7">
+        {/* O que você precisa */}
+        <section className="space-y-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+            O que você precisa
+          </p>
+          <Select
+            label="Categoria"
+            placeholder="Selecione…"
+            isDisabled={loadingCategories}
+            options={(categories ?? []).map((c) => ({ value: c.id, label: c.name }))}
+            value={categoryId}
+            onChange={setCategoryId}
+            error={errors.categoryId}
+          />
+          <Textarea
+            label="Descrição do serviço"
+            placeholder="Ex.: Preciso pintar dois quartos de aprox. 12m² cada…"
+            value={description}
+            onChange={setDescription}
+            minRows={5}
+            error={errors.description}
+          />
+        </section>
 
-        <Textarea
-          label="Descrição do serviço"
-          placeholder="Ex.: Preciso pintar dois quartos de aprox. 12m² cada…"
-          value={description}
-          onChange={setDescription}
-          minRows={5}
-          error={errors.description}
-        />
+        {/* Local do serviço */}
+        <section className="space-y-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+            Local do serviço <span className="font-normal normal-case">(opcional)</span>
+          </p>
+          <Input label="CEP" placeholder="01001-000" value={zipCode} onChange={setZipCode} />
+          <div>
+            <Button
+              variant={coords ? 'success' : 'secondary'}
+              size="sm"
+              onClick={pickLocation}
+              disabled={geoBusy}
+              startContent={<IconLocation size={16} />}
+            >
+              {geoBusy ? 'Obtendo…' : coords ? 'Localização capturada' : 'Usar minha localização'}
+            </Button>
+            {geoError && <p className="mt-1.5 text-xs text-danger">{geoError}</p>}
+            {coords && (
+              <p className="mt-1.5 text-xs text-text-muted">
+                Localização definida ({coords.lat.toFixed(4)}, {coords.lng.toFixed(4)})
+              </p>
+            )}
+          </div>
+        </section>
 
-        <div>
-          <p className="mb-2 text-sm font-medium">Localização (opcional)</p>
-          <Button
-            variant={coords ? 'success' : 'secondary'}
-            size="sm"
-            onClick={pickLocation}
-            disabled={geoBusy}
-            startContent={<IconLocation size={16} />}
-          >
-            {geoBusy ? 'Obtendo…' : coords ? 'Localização capturada' : 'Usar minha localização'}
-          </Button>
-          {geoError && <p className="mt-1 text-xs text-danger">{geoError}</p>}
-          {coords && (
-            <p className="mt-1 text-xs text-text-muted">
-              {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
-            </p>
-          )}
-        </div>
+        {/* Preferências */}
+        <section className="space-y-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+            Preferências
+          </p>
+          <Input
+            label="Orçamento máximo (opcional)"
+            placeholder="Ex.: 1.500,00"
+            value={budgetMax}
+            onChange={setBudgetMax}
+            startContent={<span className="text-sm text-text-muted">R$</span>}
+          />
 
-        <Input label="CEP (opcional)" placeholder="01001-000" value={zipCode} onChange={setZipCode} />
-
-        <Input
-          label="Orçamento máximo (opcional)"
-          placeholder="Ex.: 1.500,00"
-          value={budgetMax}
-          onChange={setBudgetMax}
-          startContent={<span className="text-sm text-text-muted">R$</span>}
-        />
-
-        <div>
-          <p className="mb-2 text-sm font-medium">Como prefere orçar?</p>
-          <RadioGroup value={budgetMode} onValueChange={(v) => setBudgetMode(v as 'remote' | 'visit')}>
-            <Card className="p-0">
-              <Radio
-                value="remote"
-                description="O profissional pode orçar pelas fotos e descrição."
-                classNames={{ base: 'm-0 max-w-none p-3.5' }}
-              >
-                À distância (mais rápido)
-              </Radio>
-            </Card>
-            <Card className="mt-2 p-0">
-              <Radio
-                value="visit"
-                description="Receba propostas só de quem for até o local. Você pode mudar depois."
-                classNames={{ base: 'm-0 max-w-none p-3.5' }}
-              >
-                Com visita técnica antes
-              </Radio>
-            </Card>
-          </RadioGroup>
-        </div>
+          <div>
+            <p className="mb-2 text-sm font-medium">Como prefere orçar?</p>
+            <RadioGroup value={budgetMode} onValueChange={(v) => setBudgetMode(v as 'remote' | 'visit')}>
+              <Card className="p-0">
+                <Radio
+                  value="remote"
+                  description="Você prefere receber uma resposta — ou ao menos uma estimativa — pelas fotos e descrição. O profissional ainda pode sugerir uma visita se precisar."
+                  classNames={{ base: 'm-0 max-w-none p-3.5' }}
+                >
+                  À distância (mais rápido)
+                </Radio>
+              </Card>
+              <Card className="mt-2 p-0">
+                <Radio
+                  value="visit"
+                  description="Só quer propostas de quem for até o local avaliar antes. Você pode mudar depois."
+                  classNames={{ base: 'm-0 max-w-none p-3.5' }}
+                >
+                  Com visita técnica antes
+                </Radio>
+              </Card>
+            </RadioGroup>
+          </div>
+        </section>
 
         {/* Imagens (várias, limite de 5/hora) */}
         <div>
