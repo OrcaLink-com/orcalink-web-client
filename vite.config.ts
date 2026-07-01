@@ -35,6 +35,20 @@ export default defineConfig({
       devOptions: { enabled: false },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // Vendor chunks separados → melhor cache e chunk inicial menor.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('@heroui') || id.includes('framer-motion') || id.includes('@react-aria') || id.includes('@react-stately') || id.includes('react-aria')) return 'heroui';
+          if (id.includes('@tanstack')) return 'query';
+          if (id.includes('react-router') || id.includes('react-dom') || id.includes('scheduler')) return 'react';
+          return 'vendor';
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     // O pacote design-tokens é uma dependência local (file:); permitir acesso.

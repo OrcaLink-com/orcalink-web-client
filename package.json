@@ -16,7 +16,7 @@
     "@capacitor/core": "^6.2.0",
     "@heroui/react": "^2.6.14",
     "@hookform/resolvers": "^3.10.0",
-    "@orcalink/design-tokens": "file:../design-tokens",
+    "@orcalink/design-tokens": "git+https://github.com/OrcaLink-com/orcalink-web-design-tokens.git#main",
     "@tanstack/react-query": "^5.64.2",
     "framer-motion": "^11.18.2",
     "react": "^18.3.1",

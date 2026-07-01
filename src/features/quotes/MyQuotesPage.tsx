@@ -107,7 +107,7 @@ function QuoteRow({ quote: q }: { quote: Quote }) {
       {q.images.length > 0 && (
         <div className="mt-3 flex gap-2">
           {q.images.slice(0, 4).map((img) => (
-            <img key={img.id} src={img.url} alt="" className="h-16 w-16 rounded-medium object-cover" />
+            <img key={img.id} src={img.url} alt="" loading="lazy" decoding="async" className="h-16 w-16 rounded-medium object-cover" />
           ))}
         </div>
       )}

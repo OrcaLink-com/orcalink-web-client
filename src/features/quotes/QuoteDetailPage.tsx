@@ -103,6 +103,8 @@ export function QuoteDetailPage() {
                 <img
                   src={img.url}
                   alt="referência"
+                  loading="lazy"
+                  decoding="async"
                   className="aspect-square w-full rounded-md object-cover"
                 />
               </a>

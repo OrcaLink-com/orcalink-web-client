@@ -203,7 +203,7 @@ export function NewQuotePage() {
             <div className="mb-2 grid grid-cols-4 gap-2">
               {imageUrls.map((url) => (
                 <div key={url} className="relative">
-                  <img src={url} alt="" className="aspect-square w-full rounded-medium object-cover" />
+                  <img src={url} alt="" loading="lazy" decoding="async" className="aspect-square w-full rounded-medium object-cover" />
                   <button
                     type="button"
                     onClick={() => removeImage(url)}
