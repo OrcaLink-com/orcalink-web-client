@@ -39,6 +39,8 @@ export function App() {
   return (
     <Suspense fallback={<Loading />}>
       <Routes>
+        {/* Landing acessível mesmo logado (sem o chrome do app). */}
+        <Route path="/site" element={<LandingPage />} />
         <Route element={<Layout />}>
           <Route index element={<MyQuotesPage />} />
           <Route path="negociacoes" element={<NegociacoesPage />} />

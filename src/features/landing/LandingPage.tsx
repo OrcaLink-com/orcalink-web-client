@@ -44,7 +44,9 @@ function LandingNav() {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-lg">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5">
-        <span className="text-xl font-bold tracking-tight text-primary">{brand.name}</span>
+        <a href="#topo" aria-label={brand.name}>
+          <img src="/brand/logo.svg" alt={brand.name} className="h-8 w-auto" />
+        </a>
         <nav className="flex items-center gap-2 sm:gap-3">
           <a
             href={links.providerUrl}
@@ -97,7 +99,10 @@ function Hero() {
                   <div key={t} className="rounded-large border border-border bg-content1 p-3 shadow-card">
                     <p className="text-sm font-semibold">{t.split(' · ')[0]}</p>
                     <p className="text-xs text-text-muted">{t.split(' · ')[1]}</p>
-                    <div className="mt-2 h-7 w-24 rounded-md bg-primary/80" />
+                    <span className="mt-2 inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white">
+                      Ver propostas
+                      <IconArrowRight size={13} />
+                    </span>
                   </div>
                 ))}
               </div>

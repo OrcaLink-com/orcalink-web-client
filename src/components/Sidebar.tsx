@@ -11,6 +11,7 @@ import {
   IconInbox,
   IconPlus,
   IconLogout,
+  IconGlobe,
 } from './icons';
 
 /**
@@ -23,8 +24,8 @@ export function Sidebar() {
 
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-border bg-background px-3 py-5 lg:flex">
-      <Link to="/" className="px-2 text-xl font-bold tracking-tight text-primary">
-        {brand.name}
+      <Link to="/" className="px-2" aria-label={brand.name}>
+        <img src="/brand/logo.svg" alt={brand.name} className="h-8 w-auto" />
       </Link>
 
       <Link
@@ -42,6 +43,13 @@ export function Sidebar() {
       </nav>
 
       <div className="mt-auto border-t border-border pt-3">
+        <Link
+          to="/site"
+          className="mb-1 flex items-center gap-3 rounded-medium px-3 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-content2 hover:text-foreground"
+        >
+          <IconGlobe size={18} />
+          <span className="flex-1">Ver site</span>
+        </Link>
         <div className="flex items-center gap-2.5 px-2 py-2">
           <Avatar name={user?.name ?? '?'} size="sm" />
           <span className="min-w-0 flex-1 truncate text-sm font-medium">{user?.name ?? 'Você'}</span>

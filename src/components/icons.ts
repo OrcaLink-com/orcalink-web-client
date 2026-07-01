@@ -54,6 +54,7 @@ export {
   LuMessageCircle as IconRealtime,
   LuArrowRight as IconArrowRight,
   LuBuilding2 as IconCity,
+  LuGlobe as IconGlobe,
 } from 'react-icons/lu';
 
 export type { IconType } from 'react-icons';
