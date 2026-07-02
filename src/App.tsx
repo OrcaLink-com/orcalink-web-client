@@ -16,6 +16,7 @@ const MyVisitsPage = lazy(() => import('./features/quotes/MyVisitsPage').then((m
 const NegociacoesPage = lazy(() => import('./features/negociacoes/NegociacoesPage').then((m) => ({ default: m.NegociacoesPage })));
 const InboxPage = lazy(() => import('./features/inbox/InboxPage').then((m) => ({ default: m.InboxPage })));
 const EuPage = lazy(() => import('./features/profile/EuPage').then((m) => ({ default: m.EuPage })));
+const ChatDemoPage = lazy(() => import('./features/chat-demo/ChatDemoPage').then((m) => ({ default: m.ChatDemoPage })));
 
 function Loading() {
   return <Spinner label="Carregando…" />;
@@ -41,6 +42,8 @@ export function App() {
       <Routes>
         {/* Landing acessível mesmo logado (sem o chrome do app). */}
         <Route path="/site" element={<LandingPage />} />
+        {/* Demo do novo módulo de chat premium (tela cheia, isolada). */}
+        <Route path="/chat-demo" element={<ChatDemoPage />} />
         <Route element={<Layout />}>
           <Route index element={<MyQuotesPage />} />
           <Route path="negociacoes" element={<NegociacoesPage />} />
