@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { MotionConfig, motion } from 'framer-motion';
 import type { ChatActionHandlers, ChatMessage, ChatParticipant, ChatViewer, ServiceStatus } from './types';
 import { ChatHeader } from './ChatHeader';
@@ -18,6 +19,10 @@ export interface ChatConversationViewProps {
   onOpenMenu?: (action: 'details' | 'archive' | 'block') => void;
   /** Desabilita o composer (conversa encerrada). */
   disabled?: boolean;
+  /** Conteúdo entre as mensagens e o composer (ex.: forms de ação do prestador). */
+  aboveComposer?: ReactNode;
+  /** Faixa de status logo abaixo do header (ex.: "selecionado · líquido"). */
+  headerBanner?: ReactNode;
   className?: string;
 }
 
@@ -37,6 +42,8 @@ export function ChatConversationView({
   onBack,
   onOpenMenu,
   disabled,
+  aboveComposer,
+  headerBanner,
   className = '',
 }: ChatConversationViewProps) {
   const off = disabled ?? serviceStatus === 'canceled';
@@ -55,6 +62,7 @@ export function ChatConversationView({
           onOpenMenu={onOpenMenu}
           className="shrink-0"
         />
+        {headerBanner && <div className="shrink-0">{headerBanner}</div>}
         <ChatMessages
           messages={messages}
           viewer={viewer}
@@ -63,6 +71,7 @@ export function ChatConversationView({
           peerTyping={peerTyping}
           className="min-h-0 flex-1"
         />
+        {aboveComposer && <div className="shrink-0">{aboveComposer}</div>}
         <ChatComposer
           onSend={(t) => handlers.onSendMessage?.(t)}
           onAttach={handlers.onSendAttachment}
