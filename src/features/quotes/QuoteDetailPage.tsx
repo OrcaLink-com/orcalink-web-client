@@ -7,30 +7,27 @@ import {
   Card,
   EmptyState,
   SectionHeader,
-  SegmentedTabs,
   Spinner,
   StatusChip,
   Timeline,
 } from '../../components/ui';
-import type { Segment } from '../../components/ui';
 import {
-  IconAgenda,
   IconBack,
   IconHistory,
   IconImages,
   IconNegotiations,
 } from '../../components/icons';
 import { ProviderCard } from './ProviderCard';
-import { PaymentSection, ReviewSection, VisitItem } from './quoteSections';
+import { PaymentSection, ReviewSection } from './quoteSections';
+import { NegotiationDrawer } from './NegotiationDrawer';
 import { buildQuoteTimeline } from './timeline';
 
-type Tab = 'negociacao' | 'agenda';
-
 /**
- * Detalhe consolidado do orçamento (redesign v2). Estrutura pedida:
- *   Dados do orçamento → Imagens → Abas [Negociação | Agenda] → Histórico (auditoria).
- * Tudo da negociação (propostas, visitas, valor, decisões) vive dentro da conversa de
- * cada prestador — aqui só listamos as negociações e os compromissos.
+ * Detalhe consolidado do orçamento. Estrutura:
+ *   Dados do orçamento → Pagamento/Avaliação → Imagens → Negociações → Histórico.
+ * Toda a negociação (propostas, visitas, valor, decisões) vive dentro da conversa de
+ * cada prestador — aqui listamos as negociações como cards e a conversa abre em um
+ * Drawer lateral (sem trocar de página). Datas/visitas aparecem no card e no histórico.
  */
 export function QuoteDetailPage() {
   const { quoteId = '' } = useParams();
@@ -44,10 +41,7 @@ export function QuoteDetailPage() {
   const convs = convsQ.data ?? [];
   const visits = visitsQ.data ?? [];
 
-  const [tab, setTab] = useState<Tab>('negociacao');
-
-  const activeNegotiations = convs.filter((c) => c.status === 'ACTIVE').length;
-  const scheduledVisits = visits.filter((v) => v.status !== 'CANCELED');
+  const [openConv, setOpenConv] = useState<string | null>(null);
 
   const timeline = useMemo(
     () => (quote ? buildQuoteTimeline(quote, convs, visits) : []),
@@ -57,11 +51,6 @@ export function QuoteDetailPage() {
   if (quoteQ.isLoading) return <Spinner label="Carregando…" />;
   if (quoteQ.isError) return <p className="text-danger">{(quoteQ.error as Error).message}</p>;
   if (!quote) return null;
-
-  const tabs: Segment<Tab>[] = [
-    { value: 'negociacao', label: 'Negociação', count: activeNegotiations },
-    { value: 'agenda', label: 'Agenda', count: scheduledVisits.length },
-  ];
 
   return (
     <div className="space-y-8">
@@ -113,15 +102,37 @@ export function QuoteDetailPage() {
         )}
       </section>
 
-      {/* Abas: Negociação | Agenda */}
+      {/* Negociações — cada card abre a conversa em um Drawer lateral */}
       <section className="space-y-3">
-        <SegmentedTabs segments={tabs} value={tab} onChange={setTab} />
-
-        {tab === 'negociacao' && <NegotiationTab quoteId={quoteId} convs={convs} visits={visits} />}
-        {tab === 'agenda' && <AgendaTab quoteId={quoteId} visits={scheduledVisits} />}
+        <SectionHeader title="Negociações" />
+        {convs.length === 0 ? (
+          <EmptyState
+            icon={<IconNegotiations size={24} />}
+            title="Aguardando profissionais"
+            hint="Quem demonstrar interesse aparece aqui. Abra cada negociação para conversar, receber propostas e decidir."
+          />
+        ) : (
+          <ul className="space-y-2.5">
+            {convs.map((c) => {
+              const myVisits = visits
+                .filter((v) => v.providerId === c.counterpartId)
+                .sort((a, b) => (b.scheduledAt ?? '').localeCompare(a.scheduledAt ?? ''));
+              return (
+                <li key={c.id}>
+                  <ProviderCard
+                    conv={c}
+                    quoteId={quoteId}
+                    providerVisits={myVisits}
+                    onOpenChat={setOpenConv}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </section>
 
-      {/* Histórico (auditoria) */}
+      {/* Histórico (auditoria) — inclui visitas/datas agendadas */}
       <section>
         <SectionHeader title="Histórico" />
         {timeline.length === 0 ? (
@@ -130,6 +141,13 @@ export function QuoteDetailPage() {
           <Timeline items={timeline} />
         )}
       </section>
+
+      <NegotiationDrawer
+        quoteId={quoteId}
+        conversationId={openConv}
+        isOpen={openConv !== null}
+        onClose={() => setOpenConv(null)}
+      />
     </div>
   );
 }
@@ -140,67 +158,5 @@ function Field({ label, value }: { label: string; value: string }) {
       <dt className="text-xs text-text-muted">{label}</dt>
       <dd className="mt-0.5">{value}</dd>
     </div>
-  );
-}
-
-function NegotiationTab({
-  quoteId,
-  convs,
-  visits,
-}: {
-  quoteId: string;
-  convs: import('../../lib/types').ConversationSummary[];
-  visits: import('../../lib/types').Visit[];
-}) {
-  if (convs.length === 0) {
-    return (
-      <EmptyState
-        icon={<IconNegotiations size={24} />}
-        title="Aguardando profissionais"
-        hint="Quem demonstrar interesse aparece aqui. Abra cada negociação para conversar, receber propostas e decidir."
-      />
-    );
-  }
-  return (
-    <ul className="grid gap-2.5 sm:grid-cols-2">
-      {convs.map((c) => {
-        const myVisits = visits
-          .filter((v) => v.providerId === c.counterpartId)
-          .sort((a, b) => (b.scheduledAt ?? '').localeCompare(a.scheduledAt ?? ''));
-        return (
-          <li key={c.id}>
-            <ProviderCard conv={c} quoteId={quoteId} providerVisits={myVisits} />
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-function AgendaTab({
-  quoteId,
-  visits,
-}: {
-  quoteId: string;
-  visits: import('../../lib/types').Visit[];
-}) {
-  if (visits.length === 0) {
-    return (
-      <EmptyState
-        icon={<IconAgenda size={24} />}
-        title="Nenhum compromisso agendado"
-        hint="Visitas técnicas e datas de execução combinadas com os profissionais aparecem aqui."
-      />
-    );
-  }
-  return (
-    <ul className="space-y-2">
-      {visits
-        .slice()
-        .sort((a, b) => (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? ''))
-        .map((v) => (
-          <VisitItem key={v.id} visit={v} quoteId={quoteId} />
-        ))}
-    </ul>
   );
 }

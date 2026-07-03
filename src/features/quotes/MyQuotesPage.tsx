@@ -20,7 +20,23 @@ import {
 } from '../../components/icons';
 import type { Quote } from '../../lib/types';
 
-type Filter = 'all' | 'proposals' | 'done';
+type Filter = 'all' | 'negotiating' | 'proposals' | 'done';
+
+/** Status considerados "em negociação" (aberto, ainda não concluído/cancelado). */
+const NEGOTIATING: Quote['status'][] = [
+  'CREATED',
+  'WAITING_PROPOSALS',
+  'IN_NEGOTIATION',
+  'PROVIDER_SELECTED',
+  'WAITING_PAYMENT',
+];
+
+function matchesFilter(q: Quote, filter: Filter): boolean {
+  if (filter === 'negotiating') return NEGOTIATING.includes(q.status);
+  if (filter === 'proposals') return q.proposalsCount > 0;
+  if (filter === 'done') return q.status === 'FINISHED';
+  return true;
+}
 
 export function MyQuotesPage() {
   const { data: quotes, isLoading, isError, error } = useMyQuotes();
@@ -30,6 +46,7 @@ export function MyQuotesPage() {
     const list = quotes ?? [];
     return {
       total: list.length,
+      negotiating: list.filter((q) => NEGOTIATING.includes(q.status)).length,
       withProposals: list.filter((q) => q.proposalsCount > 0).length,
       done: list.filter((q) => q.status === 'FINISHED').length,
     };
@@ -39,15 +56,12 @@ export function MyQuotesPage() {
   if (isError) return <p className="text-danger">Não foi possível carregar: {(error as Error).message}</p>;
 
   const list = quotes ?? [];
-  const filtered = list.filter((q) => {
-    if (filter === 'proposals') return q.proposalsCount > 0;
-    if (filter === 'done') return q.status === 'FINISHED';
-    return true;
-  });
+  const filtered = list.filter((q) => matchesFilter(q, filter));
 
   const segments: Segment<Filter>[] = [
     { value: 'all', label: 'Todos', count: stats.total },
-    { value: 'proposals', label: 'Com propostas', count: stats.withProposals },
+    { value: 'negotiating', label: 'Em negociação', count: stats.negotiating },
+    { value: 'proposals', label: 'Com proposta', count: stats.withProposals },
     { value: 'done', label: 'Concluídos', count: stats.done },
   ];
 
@@ -74,13 +88,13 @@ export function MyQuotesPage() {
         <>
           <div className="flex gap-2.5">
             <StatCard value={stats.total} label="Total" icon={<IconQuotes size={16} />} />
-            <StatCard value={stats.withProposals} label="Com propostas" icon={<IconClock size={16} />} accent />
+            <StatCard value={stats.negotiating} label="Em negociação" icon={<IconClock size={16} />} accent />
             <StatCard value={stats.done} label="Concluídos" icon={<IconSuccess size={16} />} />
           </div>
 
           <SegmentedTabs segments={segments} value={filter} onChange={setFilter} />
 
-          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <ul className="space-y-3">
             {filtered.map((q) => (
               <li key={q.id}>
                 <QuoteRow quote={q} />

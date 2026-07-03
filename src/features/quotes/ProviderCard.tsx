@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
 import { useAcceptProposal, useConfirmVisit, useRejectProposal } from '../../lib/queries';
 import { formatBRL, formatDateTime } from '../../lib/format';
 import { Avatar, Button, Card, RatingStars } from '../../components/ui';
@@ -23,10 +22,13 @@ export function ProviderCard({
   conv,
   quoteId,
   providerVisits,
+  onOpenChat,
 }: {
   conv: ConversationSummary;
   quoteId: string;
   providerVisits: Visit[];
+  /** Abre a conversa (drawer lateral). Recebe o id da conversa. */
+  onOpenChat: (conversationId: string) => void;
 }) {
   const accept = useAcceptProposal(quoteId);
   const reject = useRejectProposal(quoteId);
@@ -77,9 +79,7 @@ export function ProviderCard({
     primary = { label: 'Confirmar', onClick: () => confirmVisit.mutate(visit!.id), disabled: confirmVisit.isPending };
     secondary = {
       label: 'Sugerir outra',
-      onClick: () => {
-        window.location.href = `/orcamento/${quoteId}/negociacao/${conv.id}`;
-      },
+      onClick: () => onOpenChat(conv.id),
     };
   } else if (isPreApproved) {
     icon = <IconWaiting size={sz} />;
@@ -130,12 +130,13 @@ export function ProviderCard({
             </div>
           )}
 
-          <Link
-            to={`/orcamento/${quoteId}/negociacao/${conv.id}`}
+          <button
+            type="button"
+            onClick={() => onOpenChat(conv.id)}
             className="mt-3 inline-flex items-center gap-0.5 text-xs font-medium text-text-muted hover:text-foreground"
           >
-            Ver conversa <IconChevronRight size={13} />
-          </Link>
+            Abrir conversa <IconChevronRight size={13} />
+          </button>
 
           {(accept.isError || reject.isError || confirmVisit.isError) && (
             <p className="mt-1 text-xs text-danger">

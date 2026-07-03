@@ -13,7 +13,6 @@ const QuoteDetailPage = lazy(() => import('./features/quotes/QuoteDetailPage').t
 const NegotiationPage = lazy(() => import('./features/quotes/NegotiationPage').then((m) => ({ default: m.NegotiationPage })));
 const CompareProposalsPage = lazy(() => import('./features/quotes/CompareProposalsPage').then((m) => ({ default: m.CompareProposalsPage })));
 const MyVisitsPage = lazy(() => import('./features/quotes/MyVisitsPage').then((m) => ({ default: m.MyVisitsPage })));
-const NegociacoesPage = lazy(() => import('./features/negociacoes/NegociacoesPage').then((m) => ({ default: m.NegociacoesPage })));
 const InboxPage = lazy(() => import('./features/inbox/InboxPage').then((m) => ({ default: m.InboxPage })));
 const EuPage = lazy(() => import('./features/profile/EuPage').then((m) => ({ default: m.EuPage })));
 const ChatDemoPage = lazy(() => import('./features/chat-demo/ChatDemoPage').then((m) => ({ default: m.ChatDemoPage })));
@@ -46,7 +45,8 @@ export function App() {
         <Route path="/chat-demo" element={<ChatDemoPage />} />
         <Route element={<Layout />}>
           <Route index element={<MyQuotesPage />} />
-          <Route path="negociacoes" element={<NegociacoesPage />} />
+          {/* Negociações agora vivem dentro de cada orçamento (hub em "/"). */}
+          <Route path="negociacoes" element={<Navigate to="/" replace />} />
           <Route path="eu" element={<EuPage />} />
           <Route path="inbox" element={<InboxPage />} />
           <Route path="novo" element={<NewQuotePage />} />

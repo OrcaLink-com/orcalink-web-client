@@ -6,7 +6,6 @@ import { useNotifications } from '../lib/queries';
 import { Avatar } from './ui';
 import {
   IconQuotes,
-  IconNegotiations,
   IconUser,
   IconInbox,
   IconPlus,
@@ -37,7 +36,6 @@ export function Sidebar() {
 
       <nav className="mt-6 space-y-1">
         <Item to="/" icon={<IconQuotes size={20} />} label="Orçamentos" end />
-        <Item to="/negociacoes" icon={<IconNegotiations size={20} />} label="Negociações" />
         <Item to="/inbox" icon={<IconInbox size={20} />} label="Notificações" badge={unread} />
         <Item to="/eu" icon={<IconUser size={20} />} label="Eu" />
       </nav>

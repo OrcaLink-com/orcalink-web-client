@@ -1,16 +1,17 @@
 import { NavLink } from 'react-router-dom';
 import type { ReactNode } from 'react';
-import { IconQuotes, IconNegotiations, IconUser } from './icons';
+import { IconQuotes, IconPlus, IconUser } from './icons';
 
 /**
  * Navegação inferior do app Cliente: 3 destinos com ícones Lucide.
- *  Orçamentos · Negociações · Eu  (notificações ficam no sino do topo)
+ *  Orçamentos · Novo · Eu  (as negociações vivem dentro de cada orçamento;
+ *  notificações ficam no sino do topo)
  */
 export function TabBar() {
   return (
     <nav className="sticky bottom-0 z-20 flex border-t border-border bg-background/85 backdrop-blur-lg lg:hidden">
       <Tab to="/" icon={<IconQuotes size={22} />} label="Orçamentos" />
-      <Tab to="/negociacoes" icon={<IconNegotiations size={22} />} label="Negociações" />
+      <Tab to="/novo" icon={<IconPlus size={22} />} label="Novo" />
       <Tab to="/eu" icon={<IconUser size={22} />} label="Eu" />
     </nav>
   );
