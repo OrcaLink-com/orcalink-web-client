@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { TabBar } from './TabBar';
 import { Sidebar } from './Sidebar';
 import { NotificationsBell } from './NotificationsBell';
+import { MessageToaster } from './MessageToaster';
 import { Avatar } from './ui';
 
 export function Layout() {
@@ -15,6 +16,8 @@ export function Layout() {
 
   return (
     <div className="flex min-h-dvh bg-background">
+      {/* Toasts de novas mensagens (tempo real) */}
+      <MessageToaster />
       {/* Navegação lateral (desktop) */}
       <Sidebar />
 

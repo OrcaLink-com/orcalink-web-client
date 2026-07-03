@@ -6,9 +6,25 @@ import { MessageAvatar } from './MessageAvatar';
 export interface ChatHeaderProps {
   peer: ChatParticipant;
   serviceStatus: ServiceStatus;
+  /** Contraparte digitando agora (sobrepõe online/visto por último). */
+  peerTyping?: boolean;
   onBack?: () => void;
   onOpenMenu?: (action: 'details' | 'archive' | 'block') => void;
   className?: string;
+}
+
+/** "visto por último" humanizado a partir de um ISO. */
+function lastSeenLabel(iso?: string): string {
+  if (!iso) return 'offline';
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return 'visto por último agora mesmo';
+  if (min < 60) return `visto por último há ${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `visto por último há ${h} h`;
+  const d = Math.floor(h / 24);
+  if (d === 1) return 'visto por último ontem';
+  return `visto por último em ${new Date(iso).toLocaleDateString('pt-BR')}`;
 }
 
 /** Rótulo + accent (classe de cor) de cada status de serviço. */
@@ -22,7 +38,7 @@ const STATUS_META: Record<ServiceStatus, { label: string; className: string }> =
   canceled: { label: 'Cancelado', className: 'bg-danger/15 text-danger' },
 };
 
-export function ChatHeader({ peer, serviceStatus, onBack, onOpenMenu, className = '' }: ChatHeaderProps) {
+export function ChatHeader({ peer, serviceStatus, peerTyping, onBack, onOpenMenu, className = '' }: ChatHeaderProps) {
   const status = STATUS_META[serviceStatus];
   return (
     <header
@@ -47,14 +63,16 @@ export function ChatHeader({ peer, serviceStatus, onBack, onOpenMenu, className 
             <span className="hidden truncate text-xs text-text-muted sm:inline">· {peer.headline}</span>
           )}
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-text-muted">
-          {peer.online ? (
+        <div className="flex items-center gap-1.5 text-xs">
+          {peerTyping ? (
+            <span className="font-medium text-primary">digitando…</span>
+          ) : peer.online ? (
             <>
               <span className="h-2 w-2 rounded-full bg-success" />
-              <span>online</span>
+              <span className="text-text-muted">online</span>
             </>
           ) : (
-            <span>{peer.lastSeenAt ? 'visto por último há pouco' : 'offline'}</span>
+            <span className="text-text-muted">{lastSeenLabel(peer.lastSeenAt)}</span>
           )}
         </div>
       </div>

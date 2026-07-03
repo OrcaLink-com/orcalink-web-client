@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { LuFileText, LuClock, LuShieldCheck, LuCreditCard, LuStickyNote, LuCheck, LuX, LuLayers } from 'react-icons/lu';
 import type { ProposalPayload } from '../types';
 import { BaseActionCard, CardButton, type MetaItem } from './BaseActionCard';
@@ -16,6 +17,32 @@ const METHOD_LABEL: Record<string, string> = { PIX: 'PIX', CARD: 'Cartão', BOLE
 export function ProposalCard({ payload, onAccept, onReject, onCompare, mine }: ProposalCardProps) {
   const isEstimate = payload.kind === 'estimate';
   const pending = payload.status === 'pending';
+  // Enquanto uma ação (aceitar/recusar) roda, travamos o card inteiro para
+  // impedir cliques duplicados ou aceitar+recusar em paralelo.
+  const [busy, setBusy] = useState(false);
+  const guard = (fn?: () => Promise<void>) =>
+    fn
+      ? async () => {
+          if (busy) return;
+          setBusy(true);
+          try {
+            await fn();
+          } finally {
+            setBusy(false);
+          }
+        }
+      : undefined;
+  const accept = guard(onAccept);
+  const reject = guard(onReject);
+
+  // Título na perspectiva de quem vê: quem enviou vê "enviada", quem recebe "recebida".
+  const title = isEstimate
+    ? mine
+      ? 'Estimativa enviada'
+      : 'Estimativa recebida'
+    : mine
+      ? 'Proposta final enviada'
+      : 'Proposta final recebida';
   const hasRange =
     isEstimate &&
     payload.amountMinCents != null &&
@@ -51,7 +78,7 @@ export function ProposalCard({ payload, onAccept, onReject, onCompare, mine }: P
     <BaseActionCard
       accent={isEstimate ? 'blue' : 'neutral'}
       icon={<LuFileText size={22} />}
-      title={isEstimate ? 'Estimativa recebida' : 'Proposta final'}
+      title={title}
       subtitle={payload.providerName}
       description={payload.description}
       badge={badge}
@@ -63,17 +90,18 @@ export function ProposalCard({ payload, onAccept, onReject, onCompare, mine }: P
             <CardButton
               accent={isEstimate ? 'blue' : 'green'}
               icon={<LuCheck size={17} />}
-              onPress={onAccept}
+              onPress={accept}
+              disabled={busy}
               successLabel="Aceita!"
             >
               {isEstimate ? 'Aceitar estimativa' : 'Aceitar e contratar'}
             </CardButton>
             <div className={payload.compareCount ? 'grid grid-cols-2 gap-2' : ''}>
-              <CardButton variant="secondary" icon={<LuX size={16} />} onPress={onReject}>
+              <CardButton variant="secondary" icon={<LuX size={16} />} onPress={reject} disabled={busy}>
                 Recusar
               </CardButton>
               {payload.compareCount ? (
-                <CardButton variant="secondary" icon={<LuLayers size={16} />} onPress={onCompare}>
+                <CardButton variant="secondary" icon={<LuLayers size={16} />} onPress={onCompare} disabled={busy}>
                   Comparar ({payload.compareCount})
                 </CardButton>
               ) : null}

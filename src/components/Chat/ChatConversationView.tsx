@@ -14,6 +14,8 @@ export interface ChatConversationViewProps {
   handlers: ChatActionHandlers;
   loading?: boolean;
   peerTyping?: boolean;
+  /** id da mensagem a destacar (ex.: aberta a partir de um toast). */
+  highlightMessageId?: string;
   /** Voltar (mobile / embutido no app). */
   onBack?: () => void;
   onOpenMenu?: (action: 'details' | 'archive' | 'block') => void;
@@ -39,6 +41,7 @@ export function ChatConversationView({
   handlers,
   loading,
   peerTyping,
+  highlightMessageId,
   onBack,
   onOpenMenu,
   disabled,
@@ -58,6 +61,7 @@ export function ChatConversationView({
         <ChatHeader
           peer={peer}
           serviceStatus={serviceStatus}
+          peerTyping={peerTyping}
           onBack={onBack}
           onOpenMenu={onOpenMenu}
           className="shrink-0"
@@ -69,12 +73,14 @@ export function ChatConversationView({
           handlers={handlers}
           loading={loading}
           peerTyping={peerTyping}
+          highlightMessageId={highlightMessageId}
           className="min-h-0 flex-1"
         />
         {aboveComposer && <div className="shrink-0">{aboveComposer}</div>}
         <ChatComposer
           onSend={(t) => handlers.onSendMessage?.(t)}
           onAttach={handlers.onSendAttachment}
+          onType={handlers.onTyping}
           disabled={off}
           placeholder={off ? 'Conversa encerrada' : 'Mensagem'}
           className="shrink-0"

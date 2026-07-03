@@ -7,9 +7,11 @@ import type {
   ConversationSummary,
   CreateQuoteInput,
   UploadQuota,
+  MeProfile,
   Message,
   MyVisit,
   OtpChannel,
+  UpdateMeInput,
   PricingView,
   Proposal,
   Quote,
@@ -144,6 +146,18 @@ export const api = {
   },
   me() {
     return request<AuthUser & { email: string | null; providerStatus: string | null }>('/auth/me');
+  },
+  getProfile() {
+    return request<MeProfile>('/auth/me');
+  },
+  updateMe(input: UpdateMeInput) {
+    return request<MeProfile>('/auth/me', { ...jsonBody(input), method: 'PATCH' });
+  },
+  requestPasswordOtp() {
+    return request<{ sent: boolean; devCode?: string }>('/auth/password/otp', { method: 'POST' });
+  },
+  setPassword(input: { newPassword: string; code?: string; currentPassword?: string }) {
+    return request<{ ok: boolean }>('/auth/password', { ...jsonBody(input), method: 'PATCH' });
   },
   async logout() {
     const refreshToken = getRefresh();

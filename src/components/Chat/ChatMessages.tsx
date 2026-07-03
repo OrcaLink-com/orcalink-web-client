@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { LuLock } from 'react-icons/lu';
 import type { ChatActionHandlers, ChatMessage, ChatViewer } from './types';
 import { ChatBubble } from './ChatBubble';
@@ -21,6 +22,8 @@ export interface ChatMessagesProps {
   handlers: ChatActionHandlers;
   loading?: boolean;
   peerTyping?: boolean;
+  /** id da mensagem a destacar (ex.: aberta a partir de um toast). */
+  highlightMessageId?: string;
   className?: string;
 }
 
@@ -29,8 +32,16 @@ export interface ChatMessagesProps {
  * segurança, separadores de dia, indicador de digitação e roteamento por tipo
  * (bolhas de texto/imagem/arquivo aqui; Action Cards entram no Step 5).
  */
-export function ChatMessages({ messages, viewer, handlers, loading, peerTyping, className = '' }: ChatMessagesProps) {
+export function ChatMessages({ messages, viewer, handlers, loading, peerTyping, highlightMessageId, className = '' }: ChatMessagesProps) {
   const { ref, onScroll } = useAutoScrollToBottom<HTMLDivElement>(`${messages.length}:${peerTyping ? 1 : 0}`);
+  const highlightRef = useRef<HTMLDivElement>(null);
+
+  // Ao abrir via toast, rola até a mensagem destacada.
+  useEffect(() => {
+    if (highlightMessageId && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [highlightMessageId, messages.length]);
 
   return (
     <div
@@ -63,10 +74,19 @@ export function ChatMessages({ messages, viewer, handlers, loading, peerTyping, 
           const prev = messages[i - 1];
           const showDay = !prev || !sameDay(prev.createdAt, m.createdAt);
           const mine = m.sender.id === viewer.id;
+          const highlighted = highlightMessageId === m.id;
           return (
-            <div key={m.id}>
+            <div key={m.id} ref={highlighted ? highlightRef : undefined}>
               {showDay && <ChatDateDivider iso={m.createdAt} />}
-              <MessageRenderer message={m} mine={mine} handlers={handlers} viewer={viewer} />
+              <div
+                className={
+                  highlighted
+                    ? 'animate-pulse rounded-2xl ring-2 ring-primary/60 ring-offset-2 ring-offset-background'
+                    : undefined
+                }
+              >
+                <MessageRenderer message={m} mine={mine} handlers={handlers} viewer={viewer} />
+              </div>
             </div>
           );
         })}

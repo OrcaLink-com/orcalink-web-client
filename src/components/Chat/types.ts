@@ -233,6 +233,8 @@ export type PayloadOf<T extends ChatMessageType> = Extract<ChatMessage, { type: 
 export interface ChatActionHandlers {
   onSendMessage?: (text: string) => Promise<void> | void;
   onSendAttachment?: (file: File) => Promise<void> | void;
+  /** Chamado a cada digitação (para sinalizar "digitando…" à contraparte). */
+  onTyping?: () => void;
 
   onAcceptProposal?: (proposalId: string) => Promise<void>;
   onRejectProposal?: (proposalId: string) => Promise<void>;

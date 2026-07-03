@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
+import { setActiveConversation } from '../../lib/activeChat';
 import {
   useAcceptProposal,
   useConfirmVisit,
@@ -14,10 +15,12 @@ import {
   useSendMessage,
   useVisits,
 } from '../../lib/queries';
-import { useQuoteRealtime } from '../../lib/realtime';
+import { usePeerTyping, usePresence, useQuoteRealtime, useTypingSignal } from '../../lib/realtime';
 import { ChatConversationView } from '../../components/Chat';
 import type { ChatActionHandlers, ChatMessage, ChatParticipant } from '../../components/Chat';
 import { messagesToChat, toServiceStatus } from './chatAdapter';
+import { computeNextStep } from './nextStep';
+import { NextStepBanner } from '../../components/NextStepBanner';
 import type { Visit } from '../../lib/types';
 
 interface NegotiationChatProps {
@@ -35,8 +38,16 @@ interface NegotiationChatProps {
  */
 export function NegotiationChat({ quoteId, conversationId, onBack }: NegotiationChatProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const highlightMessageId = (location.state as { highlightMessageId?: string } | null)?.highlightMessageId;
   useQuoteRealtime(quoteId);
   const { user } = useAuth();
+
+  // Marca esta conversa como "aberta" → o toaster não notifica mensagens dela.
+  useEffect(() => {
+    setActiveConversation(conversationId);
+    return () => setActiveConversation(null);
+  }, [conversationId]);
 
   const quoteQ = useQuote(quoteId);
   const messagesQ = useMessages(conversationId);
@@ -64,6 +75,19 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
       .sort((a, b) => (b.scheduledAt ?? b.createdAt).localeCompare(a.scheduledAt ?? a.createdAt));
   }, [visitsQ.data, conversation]);
   const awaitingVisit = providerVisits.find((v) => v.status === 'SUGGESTED' || v.status === 'RESCHEDULED');
+  const hasCompletedVisit = providerVisits.some((v) => v.type === 'IN_LOCO' && v.status === 'COMPLETED');
+
+  const nextStep = quoteStatus
+    ? computeNextStep({
+        quoteStatus,
+        viewerRole: 'client',
+        requiresVisit: conversation?.requiresVisit ?? false,
+        latestProposalType: proposal?.type,
+        latestProposalStatus: proposal?.status,
+        hasCompletedVisit,
+        hasPendingVisit: Boolean(awaitingVisit),
+      })
+    : null;
 
   const otherFinalsPending = (convsQ.data ?? []).filter(
     (c) =>
@@ -73,8 +97,18 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
       c.latestProposal.status === 'PENDING',
   ).length;
 
+  const presence = usePresence(conversation?.counterpartId);
+  const peerTyping = usePeerTyping(quoteId, conversation?.counterpartId);
+  const notifyTyping = useTypingSignal(quoteId);
+
   const peer: ChatParticipant | null = conversation
-    ? { id: conversation.counterpartId, name: conversation.counterpartName, role: 'provider', online: true }
+    ? {
+        id: conversation.counterpartId,
+        name: conversation.counterpartName,
+        role: 'provider',
+        online: presence.online,
+        lastSeenAt: presence.lastSeenAt,
+      }
     : null;
 
   const messages = useMemo<ChatMessage[]>(() => {
@@ -131,6 +165,7 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
     onSendMessage: async (t) => {
       await sendMessage.mutateAsync(t);
     },
+    onTyping: notifyTyping,
     onAcceptProposal: async (id) => {
       await acceptProposal.mutateAsync(id);
     },
@@ -163,6 +198,9 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
       messages={messages}
       handlers={handlers}
       loading={messagesQ.isLoading}
+      peerTyping={peerTyping}
+      highlightMessageId={highlightMessageId}
+      headerBanner={nextStep ? <NextStepBanner step={nextStep} /> : undefined}
       disabled={conversation?.status !== 'ACTIVE'}
       onBack={onBack}
     />

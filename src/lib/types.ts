@@ -77,6 +77,39 @@ export interface TokenResponse {
   user: AuthUser;
 }
 
+/** Perfil completo do usuário autenticado (GET /auth/me). */
+export interface MeProfile {
+  id: string;
+  role: Role;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  zipCode: string | null;
+  street: string | null;
+  number: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  state: string | null;
+  hasPassword: boolean;
+  providerStatus: string | null;
+}
+
+/** Payload de atualização de dados pessoais + endereço (PATCH /auth/me). */
+export interface UpdateMeInput {
+  name?: string;
+  phone?: string;
+  avatarUrl?: string;
+  bio?: string;
+  zipCode?: string;
+  street?: string;
+  number?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+}
+
 // ───────── Negociação (propostas + chat) ─────────
 export type ProposalStatus = 'PENDING' | 'ACCEPTED' | 'APPROVED' | 'REJECTED' | 'FINISHED';
 export type ProposalType = 'PRE' | 'FINAL';

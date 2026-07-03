@@ -8,13 +8,15 @@ export interface ChatComposerProps {
   placeholder?: string;
   onSend: (text: string) => Promise<void> | void;
   onAttach?: (file: File) => Promise<void> | void;
+  /** Chamado a cada tecla digitada (sinaliza "digitando…"). */
+  onType?: () => void;
   className?: string;
 }
 
 const EMOJIS = ['😀', '😉', '👍', '🙏', '🎉', '🔥', '✅', '❤️', '😅', '👏', '🤝', '💰', '🛠️', '📍', '⏰', '📎'];
 
 /** Composer premium: emoji · anexo · imagem · câmera · enviar (sem microfone). */
-export function ChatComposer({ disabled, placeholder = 'Mensagem', onSend, onAttach, className = '' }: ChatComposerProps) {
+export function ChatComposer({ disabled, placeholder = 'Mensagem', onSend, onAttach, onType, className = '' }: ChatComposerProps) {
   const [text, setText] = useState('');
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [sending, setSending] = useState(false);
@@ -118,7 +120,10 @@ export function ChatComposer({ disabled, placeholder = 'Mensagem', onSend, onAtt
           rows={1}
           value={text}
           disabled={disabled}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            if (e.target.value.trim()) onType?.();
+          }}
           onKeyDown={onKeyDown}
           placeholder={placeholder}
           aria-label="Escrever mensagem"
