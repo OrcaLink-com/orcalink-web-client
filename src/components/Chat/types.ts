@@ -85,6 +85,33 @@ export interface SystemPayload {
   icon?: 'check' | 'calendar' | 'payment' | 'flag' | 'info';
 }
 
+/** Ícones disponíveis para os cards de evento. */
+export type EventIcon =
+  | 'check'
+  | 'x'
+  | 'calendar-plus'
+  | 'calendar-check'
+  | 'calendar-clock'
+  | 'calendar-x'
+  | 'wallet'
+  | 'flag'
+  | 'info'
+  | 'star'
+  | 'play';
+
+export type EventTone = 'green' | 'blue' | 'amber' | 'neutral' | 'danger';
+
+/**
+ * Card de evento (informativo) — deixa uma ação do fluxo evidente, sem botões.
+ * Ex.: "Solicitação de visita enviada", "Cliente confirmou o horário".
+ */
+export interface EventPayload {
+  icon: EventIcon;
+  title: string;
+  description?: string;
+  tone: EventTone;
+}
+
 /** Estado de negociação de uma visita. */
 export type VisitStatus = 'pending' | 'accepted' | 'declined' | 'rescheduled';
 
@@ -183,6 +210,7 @@ export type ChatMessage =
   | (BaseMessage & { type: 'image'; payload: ImagePayload })
   | (BaseMessage & { type: 'file'; payload: FilePayload })
   | (BaseMessage & { type: 'system'; payload: SystemPayload })
+  | (BaseMessage & { type: 'event'; payload: EventPayload })
   | (BaseMessage & { type: 'proposal'; payload: ProposalPayload })
   | (BaseMessage & { type: 'visit_request'; payload: VisitRequestPayload })
   | (BaseMessage & { type: 'payment_request'; payload: PaymentRequestPayload })

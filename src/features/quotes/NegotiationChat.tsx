@@ -54,7 +54,8 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
   const quoteStatus = quoteQ.data?.status;
   const isContracted = proposal?.type === 'FINAL' && proposal.status === 'APPROVED';
 
-  const pricingQ = usePricing(quoteId, isContracted || quoteStatus === 'WAITING_PAYMENT');
+  const awaitingPayment = quoteStatus === 'WAITING_PAYMENT' || quoteStatus === 'PROVIDER_SELECTED';
+  const pricingQ = usePricing(quoteId, isContracted || awaitingPayment);
 
   const providerVisits = useMemo<Visit[]>(() => {
     if (!conversation) return [];
@@ -97,8 +98,8 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
         },
       });
     }
-    // Contratado e aguardando pagamento → card de pagamento.
-    if (isContracted && quoteStatus === 'WAITING_PAYMENT') {
+    // Contratado e aguardando pagamento → card de pagamento com CTA "Pagar agora".
+    if (isContracted && awaitingPayment) {
       list.push({
         id: 'payment-card',
         type: 'payment_request',
@@ -106,8 +107,8 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
         createdAt: new Date().toISOString(),
         payload: {
           paymentId: 'quote-payment',
-          amountCents: pricingQ.data?.clientTotalCents ?? 0,
-          description: 'Pagamento do serviço (fica em custódia até a conclusão).',
+          amountCents: pricingQ.data?.clientTotalCents ?? proposal?.amountCents ?? 0,
+          description: 'Proposta aprovada! Conclua o pagamento para contratar. O valor fica em custódia até a conclusão do serviço.',
           method: 'undefined',
           status: 'pending',
         },

@@ -6,6 +6,7 @@ import { ChatTyping } from './ChatTyping';
 import { useAutoScrollToBottom } from './hooks';
 import { sameDay } from './utils';
 import { SystemCard } from './ActionCards/SystemCard';
+import { EventCard } from './ActionCards/EventCard';
 import { ProposalCard } from './ActionCards/ProposalCard';
 import { VisitRequestCard } from './ActionCards/VisitRequestCard';
 import { PaymentRequestCard } from './ActionCards/PaymentRequestCard';
@@ -99,6 +100,15 @@ function MessageRenderer({
 
     case 'system':
       return <SystemCard payload={message.payload} />;
+
+    case 'event':
+      return (
+        <EventCard
+          payload={message.payload}
+          mine={mine}
+          time={new Date(message.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+        />
+      );
 
     case 'proposal': {
       const p = message.payload;

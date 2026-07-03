@@ -1,5 +1,22 @@
-import type { ChatMessage, ChatParticipant, ProposalPayload, ServiceStatus } from '../../components/Chat';
+import type { ChatMessage, ChatParticipant, EventPayload, ProposalPayload, ServiceStatus } from '../../components/Chat';
 import type { Message, Proposal, QuoteStatus } from '../../lib/types';
+
+/**
+ * Classifica uma mensagem de SISTEMA (texto livre do backend) num card de evento,
+ * inferindo ícone/tom pelo conteúdo. Fallback neutro "Atualização do orçamento".
+ */
+function systemEvent(body: string): EventPayload {
+  const b = body.toLowerCase();
+  if (b.includes('pagamento') || b.includes('pago') || b.includes('pix'))
+    return { icon: 'wallet', tone: 'green', title: 'Pagamento', description: body };
+  if (b.includes('execução') || b.includes('execucao') || b.includes('serviço iniciado'))
+    return { icon: 'flag', tone: 'blue', title: 'Execução', description: body };
+  if (b.includes('visita'))
+    return { icon: 'calendar-clock', tone: 'blue', title: 'Visita técnica', description: body };
+  if (b.includes('avali'))
+    return { icon: 'star', tone: 'amber', title: 'Avaliação', description: body };
+  return { icon: 'info', tone: 'neutral', title: 'Atualização do orçamento', description: body };
+}
 
 /** QuoteStatus (backend) → status de serviço do módulo de chat. */
 const STATUS_MAP: Record<QuoteStatus, ServiceStatus> = {
@@ -71,18 +88,47 @@ export function messagesToChat(
         if (m.proposal) out.push({ ...base, type: 'proposal', payload: toProposalPayload(m.proposal, ctx.compareCount) });
         break;
       case 'PROPOSAL_ACCEPTED':
-        out.push({ ...base, type: 'system', payload: { text: m.body ?? 'Proposta aceita', icon: 'check' } });
+        out.push({
+          ...base,
+          type: 'event',
+          payload: { icon: 'check', tone: 'green', title: 'Proposta aceita', description: m.body ?? undefined },
+        });
         break;
       case 'PROPOSAL_REJECTED':
-        out.push({ ...base, type: 'system', payload: { text: m.body ?? 'Proposta recusada', icon: 'info' } });
+        out.push({
+          ...base,
+          type: 'event',
+          payload: { icon: 'x', tone: 'neutral', title: 'Proposta recusada', description: m.body ?? undefined },
+        });
         break;
       case 'VISIT_CONFIRMED':
-        out.push({ ...base, type: 'system', payload: { text: m.body ?? 'Visita confirmada', icon: 'calendar' } });
+        out.push({
+          ...base,
+          type: 'event',
+          payload: { icon: 'calendar-check', tone: 'green', title: 'Visita confirmada', description: m.body ?? undefined },
+        });
         break;
       case 'VISIT_REQUEST':
+        out.push({
+          ...base,
+          type: 'event',
+          payload: {
+            icon: 'calendar-plus',
+            tone: 'blue',
+            title: 'Visita técnica solicitada',
+            description: m.body ?? 'O profissional pediu uma visita técnica para orçar com precisão.',
+          },
+        });
+        break;
       case 'VISIT_RESCHEDULED':
+        out.push({
+          ...base,
+          type: 'event',
+          payload: { icon: 'calendar-clock', tone: 'amber', title: 'Nova data sugerida', description: m.body ?? undefined },
+        });
+        break;
       case 'SYSTEM':
-        if (m.body) out.push({ ...base, type: 'system', payload: { text: m.body, icon: 'info' } });
+        if (m.body) out.push({ ...base, type: 'event', payload: systemEvent(m.body) });
         break;
     }
   }
