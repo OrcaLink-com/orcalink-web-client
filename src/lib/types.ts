@@ -159,6 +159,7 @@ export interface ConversationSummary {
   requiresVisit: boolean;
   counterpartName: string;
   counterpartId: string;
+  counterpartAvatarUrl?: string;
   counterpartRating: number;
   counterpartRatingCount: number;
   lastMessage?: Message;

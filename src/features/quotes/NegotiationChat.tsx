@@ -1,16 +1,20 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import { setActiveConversation } from '../../lib/activeChat';
 import {
   useAcceptProposal,
+  useComplete,
+  useCompleteVisit,
   useConfirmVisit,
   useMessages,
   usePay,
   usePricing,
+  useProfile,
   useQuote,
   useQuoteConversations,
   useRejectProposal,
+  useReopenConversation,
   useRescheduleVisit,
   useSendMessage,
   useVisits,
@@ -21,6 +25,8 @@ import type { ChatActionHandlers, ChatMessage, ChatParticipant } from '../../com
 import { messagesToChat, toServiceStatus } from './chatAdapter';
 import { computeNextStep } from './nextStep';
 import { NextStepBanner } from '../../components/NextStepBanner';
+import { NextActionCard } from '../../components/NextActionCard';
+import { LuCalendarCheck, LuCircleCheck, LuRotateCcw } from 'react-icons/lu';
 import type { Visit } from '../../lib/types';
 
 interface NegotiationChatProps {
@@ -57,6 +63,9 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
   const acceptProposal = useAcceptProposal(quoteId);
   const rejectProposal = useRejectProposal(quoteId);
   const confirmVisit = useConfirmVisit(quoteId);
+  const completeVisit = useCompleteVisit(quoteId);
+  const complete = useComplete(quoteId);
+  const reopen = useReopenConversation(quoteId);
   const reschedule = useRescheduleVisit(quoteId);
   const pay = usePay(quoteId);
 
@@ -102,11 +111,13 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
   const presence = usePresence(conversation?.counterpartId);
   const peerTyping = usePeerTyping(quoteId, conversation?.counterpartId);
   const notifyTyping = useTypingSignal(quoteId);
+  const myProfile = useProfile();
 
   const peer: ChatParticipant | null = conversation
     ? {
         id: conversation.counterpartId,
         name: conversation.counterpartName,
+        avatarUrl: conversation.counterpartAvatarUrl,
         role: 'provider',
         online: presence.online,
         lastSeenAt: presence.lastSeenAt,
@@ -115,7 +126,7 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
 
   const messages = useMemo<ChatMessage[]>(() => {
     if (!messagesQ.data || !conversation || !peer) return [];
-    const me: ChatParticipant = { id: user?.id ?? 'me', name: 'Você', role: 'client' };
+    const me: ChatParticipant = { id: user?.id ?? 'me', name: 'Você', role: 'client', avatarUrl: myProfile.data?.avatarUrl ?? undefined };
     const list = messagesToChat(messagesQ.data, { me, peer, compareCount: otherFinalsPending });
 
     // Visita aguardando confirmação do cliente → card interativo no fim.
@@ -192,6 +203,58 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
     return <p className="p-6 text-center text-sm text-text-muted">Carregando conversa…</p>;
   }
 
+  // Card de ação premium fixado acima do input (bottom sheet) — próxima ação do cliente.
+  const confirmableVisit = providerVisits.find((v) => v.type === 'IN_LOCO' && v.status === 'CONFIRMED');
+  let aboveComposer: ReactNode;
+  if (conversation?.status === 'CLOSED') {
+    aboveComposer = (
+      <NextActionCard
+        tone="primary"
+        icon={<LuRotateCcw size={20} />}
+        title="Atendimento encerrado"
+        description="Precisa falar de novo sobre este serviço? Você pode reabrir a conversa."
+        ctaLabel="Reabrir conversa"
+        onCta={async () => {
+          await reopen.mutateAsync(conversationId);
+        }}
+      />
+    );
+  } else if (confirmableVisit && !hasCompletedVisit) {
+    aboveComposer = (
+      <NextActionCard
+        tone="sky"
+        icon={<LuCalendarCheck size={20} />}
+        title="Confirme que a visita foi realizada"
+        description="O profissional só poderá enviar a proposta final após a sua confirmação."
+        ctaLabel="Confirmar visita realizada"
+        onCta={async () => {
+          await completeVisit.mutateAsync(confirmableVisit.id);
+        }}
+        confirm={{
+          description: 'Confirme que o profissional compareceu e realizou a visita técnica.',
+          confirmLabel: 'Sim, a visita foi realizada',
+        }}
+      />
+    );
+  } else if (quoteStatus === 'IN_PROGRESS') {
+    aboveComposer = (
+      <NextActionCard
+        tone="green"
+        icon={<LuCircleCheck size={20} />}
+        title="Confirme a conclusão do serviço"
+        description="Ao confirmar, liberamos o repasse ao profissional e você poderá avaliar."
+        ctaLabel="Confirmar conclusão"
+        onCta={async () => {
+          await complete.mutateAsync();
+        }}
+        confirm={{
+          description: 'Confirme que o serviço foi concluído a contento. O pagamento será liberado ao profissional.',
+          confirmLabel: 'Sim, serviço concluído',
+        }}
+      />
+    );
+  }
+
   return (
     <ChatConversationView
       peer={peer}
@@ -203,6 +266,7 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
       peerTyping={peerTyping}
       highlightMessageId={highlightMessageId}
       headerBanner={nextStep ? <NextStepBanner step={nextStep} /> : undefined}
+      aboveComposer={aboveComposer}
       disabled={conversation?.status !== 'ACTIVE'}
       autoFocusComposer
       onBack={onBack}

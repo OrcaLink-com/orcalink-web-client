@@ -99,7 +99,7 @@ function NegotiationRow({
   return (
     <Card to={`/orcamento/${conv.quoteId}/negociacao/${conv.id}`} className="p-3">
       <div className="flex items-start gap-3">
-        <Avatar name={conv.counterpartName} />
+        <Avatar name={conv.counterpartName} src={conv.counterpartAvatarUrl} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <span className="truncate font-semibold">{conv.counterpartName}</span>

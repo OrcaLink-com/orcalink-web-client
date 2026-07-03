@@ -197,6 +197,9 @@ export const api = {
   getMessages(conversationId: string) {
     return request<Message[]>(`/conversations/${conversationId}/messages`);
   },
+  reopenConversation(conversationId: string) {
+    return request<{ ok: boolean }>(`/conversations/${conversationId}/reopen`, { method: 'POST' });
+  },
   sendMessage(conversationId: string, body: string) {
     return request<Message>(`/conversations/${conversationId}/messages`, jsonBody({ body }));
   },
@@ -231,6 +234,10 @@ export const api = {
   },
   confirmVisit(visitId: string) {
     return request<Visit>(`/visits/${visitId}/confirm`, { method: 'POST' });
+  },
+  /** Cliente confirma que a visita técnica foi realizada (libera a proposta final). */
+  completeVisit(visitId: string) {
+    return request<Visit>(`/visits/${visitId}/complete`, { method: 'POST' });
   },
   rescheduleVisit(visitId: string, scheduledAt: string) {
     return request<Visit>(`/visits/${visitId}/reschedule`, jsonBody({ scheduledAt }));

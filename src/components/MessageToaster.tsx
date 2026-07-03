@@ -13,6 +13,7 @@ interface IncomingMessage {
   messageId: string;
   senderId: string;
   senderName: string;
+  senderAvatarUrl?: string | null;
   preview: string;
   createdAt: string;
 }
@@ -80,7 +81,7 @@ export function MessageToaster() {
             onClick={() => open(t)}
             className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl border border-border bg-content1/95 p-3 text-left shadow-pop backdrop-blur-xl transition-colors hover:bg-content2"
           >
-            <MessageAvatar participant={{ name: t.senderName }} size={42} />
+            <MessageAvatar participant={{ name: t.senderName, avatarUrl: t.senderAvatarUrl ?? undefined }} size={42} />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <p className="truncate text-sm font-semibold text-foreground">{t.senderName}</p>

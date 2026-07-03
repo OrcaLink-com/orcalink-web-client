@@ -158,6 +158,29 @@ export function useConfirmVisit(quoteId: string) {
   });
 }
 
+export function useCompleteVisit(quoteId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (visitId: string) => api.completeVisit(visitId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.visits(quoteId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.quote(quoteId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.quoteConversations(quoteId) });
+    },
+  });
+}
+
+export function useReopenConversation(quoteId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (conversationId: string) => api.reopenConversation(conversationId),
+    onSuccess: (_d, conversationId) => {
+      void qc.invalidateQueries({ queryKey: queryKeys.quoteConversations(quoteId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.messages(conversationId) });
+    },
+  });
+}
+
 export function useRescheduleVisit(quoteId: string) {
   const qc = useQueryClient();
   return useMutation({

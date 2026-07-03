@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { brand } from '@orcalink/design-tokens/brand.config';
 import { useAuth } from '../auth/AuthContext';
+import { useProfile } from '../lib/queries';
 import { TabBar } from './TabBar';
 import { Sidebar } from './Sidebar';
 import { NotificationsBell } from './NotificationsBell';
@@ -10,6 +11,7 @@ import { Avatar } from './ui';
 export function Layout() {
   const { pathname } = useLocation();
   const { user } = useAuth();
+  const profile = useProfile();
 
   // Fluxos focados (negociação e wizard de novo orçamento) escondem a navegação no mobile.
   const focusedFlow = pathname.includes('/negociacao/') || pathname === '/novo';
@@ -31,7 +33,7 @@ export function Layout() {
             <div className="flex items-center gap-1.5">
               <NotificationsBell />
               <Link to="/eu" aria-label="Sua conta">
-                <Avatar name={user?.name ?? '?'} size="sm" />
+                <Avatar name={user?.name ?? '?'} src={profile.data?.avatarUrl} size="sm" />
               </Link>
             </div>
           </header>

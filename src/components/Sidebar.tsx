@@ -2,7 +2,7 @@ import { NavLink, Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { brand } from '@orcalink/design-tokens/brand.config';
 import { useAuth } from '../auth/AuthContext';
-import { useNotifications } from '../lib/queries';
+import { useNotifications, useProfile } from '../lib/queries';
 import { Avatar } from './ui';
 import {
   IconQuotes,
@@ -19,6 +19,7 @@ import {
 export function Sidebar() {
   const { user, logout } = useAuth();
   const q = useNotifications();
+  const profile = useProfile();
   const unread = q.data?.unreadCount ?? 0;
 
   return (
@@ -49,7 +50,7 @@ export function Sidebar() {
           <span className="flex-1">Ver site</span>
         </Link>
         <div className="flex items-center gap-2.5 px-2 py-2">
-          <Avatar name={user?.name ?? '?'} size="sm" />
+          <Avatar name={user?.name ?? '?'} src={profile.data?.avatarUrl} size="sm" />
           <span className="min-w-0 flex-1 truncate text-sm font-medium">{user?.name ?? 'Você'}</span>
           <button
             onClick={() => void logout()}
