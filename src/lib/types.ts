@@ -162,6 +162,7 @@ export interface ConversationSummary {
   counterpartRating: number;
   counterpartRatingCount: number;
   lastMessage?: Message;
+  unreadCount: number;
   latestProposal?: Proposal;
 }
 

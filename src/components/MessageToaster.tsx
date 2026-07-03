@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSocket } from '../lib/realtime';
 import { getActiveConversation } from '../lib/activeChat';
@@ -31,10 +32,16 @@ const AUTO_DISMISS_MS = 6000;
 export function MessageToaster() {
   const socket = useSocket();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
     const onMessage = (msg: IncomingMessage) => {
+      // Atualiza listas (não lidas, última mensagem) mesmo fora do chat.
+      void qc.invalidateQueries({ queryKey: ['me', 'conversations'] });
+      void qc.invalidateQueries({ queryKey: ['quotes', msg.quoteId, 'conversations'] });
+      void qc.invalidateQueries({ queryKey: ['conversations', msg.conversationId, 'messages'] });
+      void qc.invalidateQueries({ queryKey: ['notifications'] });
       // Já olhando exatamente este chat → não incomoda; a conversa atualiza sozinha.
       if (getActiveConversation() === msg.conversationId) return;
       const key = `${msg.messageId}-${Date.now()}`;
@@ -47,7 +54,7 @@ export function MessageToaster() {
     return () => {
       socket.off('message:new', onMessage);
     };
-  }, [socket]);
+  }, [socket, qc]);
 
   function dismiss(key: string) {
     setToasts((prev) => prev.filter((t) => t.key !== key));
@@ -55,9 +62,8 @@ export function MessageToaster() {
 
   function open(t: Toast) {
     dismiss(t.key);
-    navigate(`/orcamento/${t.quoteId}/negociacao/${t.conversationId}`, {
-      state: { highlightMessageId: t.messageId },
-    });
+    // Abre o orçamento e sinaliza p/ abrir o chat na gaveta lateral (Drawer).
+    navigate(`/orcamento/${t.quoteId}`, { state: { openChat: t.conversationId } });
   }
 
   return (

@@ -32,6 +32,8 @@ export interface NextStepInput {
   hasCompletedVisit: boolean;
   /** Há visita sugerida aguardando confirmação do cliente. */
   hasPendingVisit: boolean;
+  /** Há visita técnica confirmada (aceita) aguardando ser realizada/confirmada pelo prestador. */
+  hasConfirmedVisit: boolean;
 }
 
 /** Nome da contraparte na frase ("o profissional" / "o cliente"). */
@@ -48,6 +50,7 @@ export function computeNextStep(input: NextStepInput): NextStep | null {
     latestProposalStatus,
     hasCompletedVisit,
     hasPendingVisit,
+    hasConfirmedVisit,
   } = input;
   const isClient = viewerRole === 'client';
   const other = counterpart(viewerRole);
@@ -77,6 +80,20 @@ export function computeNextStep(input: NextStepInput): NextStep | null {
               youAct: isClient,
               actionText: isClient ? 'Confirme o horário da visita técnica' : `Aguardando ${other} confirmar a visita`,
               hintText: 'Depois da visita, o profissional envia a proposta final.',
+            };
+          }
+          if (hasConfirmedVisit) {
+            // Visita agendada e aceita → falta o prestador realizar e confirmar.
+            return {
+              stageLabel: 'Visita técnica agendada',
+              tone: 'sky',
+              youAct: !isClient,
+              actionText: isClient
+                ? `Aguardando a visita e a confirmação do ${other}`
+                : 'Após a visita, confirme que ela foi realizada',
+              hintText: isClient
+                ? 'Depois, o profissional envia a proposta final.'
+                : 'Marcar como realizada libera o envio da proposta final.',
             };
           }
           return {

@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { useQuote, useQuoteConversations, useVisits } from '../../lib/queries';
 import { useQuoteRealtime } from '../../lib/realtime';
 import { formatBRL, formatDateTime } from '../../lib/format';
@@ -42,6 +42,17 @@ export function QuoteDetailPage() {
   const visits = visitsQ.data ?? [];
 
   const [openConv, setOpenConv] = useState<string | null>(null);
+
+  // Abertura do chat pela notificação (toast) → abre o Drawer da conversa.
+  const location = useLocation();
+  const openChat = (location.state as { openChat?: string } | null)?.openChat;
+  useEffect(() => {
+    if (openChat) {
+      setOpenConv(openChat);
+      // Limpa o state para não reabrir ao navegar/voltar.
+      window.history.replaceState({}, '');
+    }
+  }, [openChat]);
 
   const timeline = useMemo(
     () => (quote ? buildQuoteTimeline(quote, convs, visits) : []),

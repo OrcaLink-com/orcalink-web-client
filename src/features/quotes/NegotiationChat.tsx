@@ -76,6 +76,7 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
   }, [visitsQ.data, conversation]);
   const awaitingVisit = providerVisits.find((v) => v.status === 'SUGGESTED' || v.status === 'RESCHEDULED');
   const hasCompletedVisit = providerVisits.some((v) => v.type === 'IN_LOCO' && v.status === 'COMPLETED');
+  const hasConfirmedVisit = providerVisits.some((v) => v.type === 'IN_LOCO' && v.status === 'CONFIRMED');
 
   const nextStep = quoteStatus
     ? computeNextStep({
@@ -86,6 +87,7 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
         latestProposalStatus: proposal?.status,
         hasCompletedVisit,
         hasPendingVisit: Boolean(awaitingVisit),
+        hasConfirmedVisit,
       })
     : null;
 
@@ -202,6 +204,7 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
       highlightMessageId={highlightMessageId}
       headerBanner={nextStep ? <NextStepBanner step={nextStep} /> : undefined}
       disabled={conversation?.status !== 'ACTIVE'}
+      autoFocusComposer
       onBack={onBack}
     />
   );

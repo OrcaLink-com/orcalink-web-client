@@ -21,6 +21,8 @@ export interface ChatConversationViewProps {
   onOpenMenu?: (action: 'details' | 'archive' | 'block') => void;
   /** Desabilita o composer (conversa encerrada). */
   disabled?: boolean;
+  /** Foca o campo de mensagem ao abrir (ex.: via notificação). */
+  autoFocusComposer?: boolean;
   /** Conteúdo entre as mensagens e o composer (ex.: forms de ação do prestador). */
   aboveComposer?: ReactNode;
   /** Faixa de status logo abaixo do header (ex.: "selecionado · líquido"). */
@@ -45,6 +47,7 @@ export function ChatConversationView({
   onBack,
   onOpenMenu,
   disabled,
+  autoFocusComposer,
   aboveComposer,
   headerBanner,
   className = '',
@@ -81,6 +84,7 @@ export function ChatConversationView({
           onSend={(t) => handlers.onSendMessage?.(t)}
           onAttach={handlers.onSendAttachment}
           onType={handlers.onTyping}
+          autoFocus={autoFocusComposer}
           disabled={off}
           placeholder={off ? 'Conversa encerrada' : 'Mensagem'}
           className="shrink-0"

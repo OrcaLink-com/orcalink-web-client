@@ -21,6 +21,8 @@ import type {
   Visit,
 } from './types';
 
+import { reconnectSocket } from './realtime';
+
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 const ACCESS_KEY = 'ol_access';
@@ -92,6 +94,8 @@ function tryRefresh(): Promise<boolean> {
       // /auth/refresh não retorna user; preserva o atual.
       const user = getStoredUser();
       if (user) storeSession({ ...data, user });
+      // Reconecta o socket com o token novo (senão o realtime fica mudo após expirar).
+      reconnectSocket();
       return true;
     })
     .catch(() => false)

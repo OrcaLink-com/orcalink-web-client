@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { LuSmile, LuPaperclip, LuImage, LuCamera, LuSendHorizontal } from 'react-icons/lu';
 import { popIn } from './animations';
@@ -10,17 +10,26 @@ export interface ChatComposerProps {
   onAttach?: (file: File) => Promise<void> | void;
   /** Chamado a cada tecla digitada (sinaliza "digitando…"). */
   onType?: () => void;
+  /** Foca o campo ao montar (ex.: abrir o chat pela notificação). */
+  autoFocus?: boolean;
   className?: string;
 }
 
 const EMOJIS = ['😀', '😉', '👍', '🙏', '🎉', '🔥', '✅', '❤️', '😅', '👏', '🤝', '💰', '🛠️', '📍', '⏰', '📎'];
 
 /** Composer premium: emoji · anexo · imagem · câmera · enviar (sem microfone). */
-export function ChatComposer({ disabled, placeholder = 'Mensagem', onSend, onAttach, onType, className = '' }: ChatComposerProps) {
+export function ChatComposer({ disabled, placeholder = 'Mensagem', onSend, onAttach, onType, autoFocus, className = '' }: ChatComposerProps) {
   const [text, setText] = useState('');
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Foca o campo (vazio) ao abrir — inclui o caso de abrir pela notificação/Drawer.
+  useEffect(() => {
+    if (!autoFocus || disabled) return;
+    const t = setTimeout(() => textareaRef.current?.focus(), 180);
+    return () => clearTimeout(t);
+  }, [autoFocus, disabled]);
   const fileRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);

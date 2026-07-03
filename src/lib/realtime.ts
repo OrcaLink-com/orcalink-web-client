@@ -22,6 +22,16 @@ export function useSocket(): Socket {
   return getSocket();
 }
 
+/**
+ * Força uma reconexão do socket relendo o token atual. Deve ser chamado logo
+ * após renovar o access token (o token expirado derruba o socket no handshake;
+ * sem isso o socket fica reconectando com o token velho e o usuário para de
+ * receber notificações mesmo estando logado).
+ */
+export function reconnectSocket(): void {
+  if (socket) socket.disconnect().connect();
+}
+
 /** Estado de presença de um usuário observado. */
 export interface PresenceState {
   online: boolean;

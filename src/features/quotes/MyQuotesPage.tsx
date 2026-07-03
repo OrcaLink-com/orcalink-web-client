@@ -40,7 +40,8 @@ function matchesFilter(q: Quote, filter: Filter): boolean {
 
 export function MyQuotesPage() {
   const { data: quotes, isLoading, isError, error } = useMyQuotes();
-  const [filter, setFilter] = useState<Filter>('all');
+  // Abre já em "Em negociação" — onde estão os orçamentos que pedem atenção.
+  const [filter, setFilter] = useState<Filter>('negotiating');
 
   const stats = useMemo(() => {
     const list = quotes ?? [];
