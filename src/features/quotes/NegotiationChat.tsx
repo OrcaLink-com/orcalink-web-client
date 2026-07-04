@@ -1,9 +1,10 @@
-import { useEffect, useMemo, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import { setActiveConversation } from '../../lib/activeChat';
 import {
   useAcceptProposal,
+  useCancelVisit,
   useComplete,
   useCompleteVisit,
   useConfirmVisit,
@@ -30,6 +31,7 @@ import { computeNextStep } from './nextStep';
 import { NextStepBanner } from '../../components/NextStepBanner';
 import { NextActionCard } from '../../components/NextActionCard';
 import { ReviewComposer } from '../../components/ReviewComposer';
+import { VisitManageCard } from '../../components/VisitManageCard';
 import { LuCalendarCheck, LuCircleCheck, LuRotateCcw } from 'react-icons/lu';
 import type { Visit } from '../../lib/types';
 
@@ -71,10 +73,12 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
   const complete = useComplete(quoteId);
   const reopen = useReopenConversation(quoteId);
   const reschedule = useRescheduleVisit(quoteId);
+  const cancelVisit = useCancelVisit(quoteId);
   const pay = usePay(quoteId);
   const reviewQ = useReview(quoteId, quoteQ.data?.status === 'FINISHED');
   const createReview = useCreateReview(quoteId);
   const hasReview = Boolean(reviewQ.data);
+  const [reviewOpen, setReviewOpen] = useState(false);
 
   const conversation = convsQ.data?.find((c) => c.id === conversationId);
   const proposal = conversation?.latestProposal;
@@ -125,6 +129,7 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
         id: conversation.counterpartId,
         name: conversation.counterpartName,
         avatarUrl: conversation.counterpartAvatarUrl,
+        headline: conversation.quoteTitle,
         role: 'provider',
         online: presence.online,
         lastSeenAt: presence.lastSeenAt,
@@ -168,8 +173,19 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
         },
       });
     }
+    // Serviço concluído → card "Serviço concluído" com ação de avaliar (ou a nota já dada).
+    if (quoteStatus === 'FINISHED') {
+      const finishedAt = reviewQ.data?.createdAt ?? new Date().toISOString();
+      list.push({
+        id: 'finished-card',
+        type: 'service_finished',
+        sender: peer,
+        createdAt: finishedAt,
+        payload: { finishedAt, rating: reviewQ.data?.rating },
+      });
+    }
     return list;
-  }, [messagesQ.data, conversation, peer, user?.id, otherFinalsPending, awaitingVisit, isContracted, quoteStatus, pricingQ.data]);
+  }, [messagesQ.data, conversation, peer, user?.id, otherFinalsPending, awaitingVisit, isContracted, quoteStatus, pricingQ.data, reviewQ.data?.rating, reviewQ.data?.createdAt]);
 
   const handlers: ChatActionHandlers = {
     onSendMessage: async (t) => {
@@ -193,7 +209,7 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
       const res = await pay.mutateAsync();
       if (res.invoiceUrl) window.open(res.invoiceUrl, '_blank', 'noopener');
     },
-    onLeaveReview: () => navigate(`/orcamento/${quoteId}`),
+    onLeaveReview: () => setReviewOpen(true),
   };
 
   if (!peer) {
@@ -203,11 +219,12 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
   // Card de ação premium fixado acima do input (bottom sheet) — próxima ação do cliente.
   const confirmableVisit = providerVisits.find((v) => v.type === 'IN_LOCO' && v.status === 'CONFIRMED');
   let aboveComposer: ReactNode;
-  if (quoteStatus === 'FINISHED' && !hasReview && conversation?.status === 'ACTIVE') {
+  if (reviewOpen && !hasReview && quoteStatus === 'FINISHED') {
     aboveComposer = (
       <ReviewComposer
         onSubmit={async (rating, comment) => {
           await createReview.mutateAsync({ rating, comment });
+          setReviewOpen(false);
         }}
       />
     );
@@ -260,6 +277,28 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
     );
   }
 
+  // Gerenciar (reagendar/cancelar) um agendamento confirmado — visita técnica
+  // ainda não realizada ou execução ainda não iniciada.
+  const manageableVisit = providerVisits.find(
+    (v) =>
+      v.status === 'CONFIRMED' &&
+      ((v.type === 'IN_LOCO' && !hasCompletedVisit) ||
+        (v.type === 'EXECUTION' && quoteStatus === 'EXECUTION_SCHEDULED')),
+  );
+  const manageCard =
+    manageableVisit && conversation?.status === 'ACTIVE' ? (
+      <VisitManageCard
+        type={manageableVisit.type}
+        scheduledAt={manageableVisit.scheduledAt}
+        onReschedule={async (iso, reason) => {
+          await reschedule.mutateAsync({ visitId: manageableVisit.id, scheduledAt: iso, reason });
+        }}
+        onCancel={async (reason) => {
+          await cancelVisit.mutateAsync({ visitId: manageableVisit.id, reason });
+        }}
+      />
+    ) : null;
+
   return (
     <ChatConversationView
       peer={peer}
@@ -271,7 +310,14 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
       peerTyping={peerTyping}
       highlightMessageId={highlightMessageId}
       headerBanner={nextStep ? <NextStepBanner step={nextStep} /> : undefined}
-      aboveComposer={aboveComposer}
+      aboveComposer={
+        manageCard || aboveComposer ? (
+          <>
+            {manageCard}
+            {aboveComposer}
+          </>
+        ) : undefined
+      }
       disabled={conversation?.status !== 'ACTIVE'}
       autoFocusComposer
       onBack={onBack}

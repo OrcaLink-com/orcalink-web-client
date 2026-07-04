@@ -7,6 +7,13 @@ import type { Message, Proposal, QuoteStatus } from '../../lib/types';
  */
 function systemEvent(body: string): EventPayload {
   const b = body.toLowerCase();
+  if (b.includes('cancel'))
+    return {
+      icon: 'calendar-x',
+      tone: 'danger',
+      title: b.includes('execução') || b.includes('execucao') ? 'Execução cancelada' : 'Visita técnica cancelada',
+      description: body,
+    };
   if (b.includes('pagamento') || b.includes('pago') || b.includes('pix'))
     return { icon: 'wallet', tone: 'green', title: 'Pagamento', description: body };
   if (b.includes('execução') || b.includes('execucao') || b.includes('serviço iniciado'))

@@ -72,7 +72,10 @@ export function QuoteDetailPage() {
       {/* Dados completos do orçamento */}
       <Card className="p-4">
         <div className="mb-2 flex items-start justify-between gap-2">
-          <h1 className="text-xl font-bold leading-tight">{quote.category.name}</h1>
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold leading-tight">{quote.title ?? quote.category.name}</h1>
+            {quote.title && <p className="text-xs text-text-muted">{quote.category.name}</p>}
+          </div>
           <StatusChip status={quote.status} />
         </div>
         <p className="text-sm text-text-muted">{quote.description}</p>

@@ -33,6 +33,7 @@ export interface QuoteImage {
 export interface Quote {
   id: string;
   status: QuoteStatus;
+  title: string | null;
   description: string;
   zipCode: string | null;
   requiresVisit: boolean;
@@ -47,6 +48,7 @@ export interface Quote {
 
 export interface CreateQuoteInput {
   categoryId: string;
+  title: string;
   description: string;
   zipCode?: string;
   requiresVisit?: boolean;
@@ -156,6 +158,7 @@ export interface ConversationSummary {
   quoteId: string;
   status: ConversationStatus;
   quoteStatus: QuoteStatus;
+  quoteTitle?: string;
   requiresVisit: boolean;
   counterpartName: string;
   counterpartId: string;

@@ -17,11 +17,12 @@ export function NewQuotePage() {
   const quotaQ = useUploadQuota();
 
   const [categoryId, setCategoryId] = useState('');
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [zipCode, setZipCode] = useState('');
   const [budgetMax, setBudgetMax] = useState('');
   const [budgetMode, setBudgetMode] = useState<'remote' | 'visit'>('remote');
-  const [errors, setErrors] = useState<{ categoryId?: string; description?: string }>({});
+  const [errors, setErrors] = useState<{ categoryId?: string; title?: string; description?: string }>({});
 
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -84,6 +85,7 @@ export function NewQuotePage() {
     e.preventDefault();
     const next: typeof errors = {};
     if (!categoryId) next.categoryId = 'Escolha uma categoria.';
+    if (title.trim().length < 3) next.title = 'Dê um título ao projeto (mín. 3 caracteres).';
     if (description.trim().length < 10) next.description = 'Descreva o serviço com pelo menos 10 caracteres.';
     setErrors(next);
     if (Object.keys(next).length > 0) return;
@@ -95,6 +97,7 @@ export function NewQuotePage() {
 
     await createQuote.mutateAsync({
       categoryId,
+      title: title.trim(),
       description: description.trim(),
       zipCode: zipCode.trim() || undefined,
       requiresVisit: budgetMode === 'visit',
@@ -125,6 +128,13 @@ export function NewQuotePage() {
               value={categoryId}
               onChange={setCategoryId}
               error={errors.categoryId}
+            />
+            <Input
+              label="Título do projeto"
+              placeholder="Ex.: Pintura completa da sala"
+              value={title}
+              onChange={setTitle}
+              error={errors.title}
             />
             <Textarea
               label="Descrição do serviço"

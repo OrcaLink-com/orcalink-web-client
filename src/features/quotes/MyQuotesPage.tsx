@@ -115,7 +115,10 @@ function QuoteRow({ quote: q }: { quote: Quote }) {
   return (
     <Card to={`/orcamento/${q.id}`} className="p-4">
       <div className="mb-1.5 flex items-center justify-between gap-2">
-        <span className="font-semibold">{q.category.name}</span>
+        <div className="min-w-0">
+          <span className="block truncate font-semibold">{q.title ?? q.category.name}</span>
+          {q.title && <span className="text-xs text-text-muted">{q.category.name}</span>}
+        </div>
         <StatusChip status={q.status} size="sm" />
       </div>
       <p className="line-clamp-2 text-sm text-text-muted">{q.description}</p>

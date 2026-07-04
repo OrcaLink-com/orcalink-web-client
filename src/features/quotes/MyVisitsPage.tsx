@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
-import { useMyVisits } from '../../lib/queries';
+import { useCancelVisit, useMyVisits, useRescheduleVisit } from '../../lib/queries';
 import { formatDateTime } from '../../lib/format';
 import { Card, EmptyState, PageHeader, Spinner, StatusChip } from '../../components/ui';
+import { VisitManageCard } from '../../components/VisitManageCard';
 import { IconAgenda, IconConfirmed, IconHistory, IconWaiting } from '../../components/icons';
 import type { MyVisit, VisitStatus } from '../../lib/types';
 
@@ -50,6 +51,35 @@ function group(visits: MyVisit[]): Group[] {
   ];
 }
 
+/** Card de visita CONFIRMADA com ações de reagendar/cancelar (calendário do cliente). */
+function ManageableVisitCard({ visit: v }: { visit: MyVisit }) {
+  const reschedule = useRescheduleVisit(v.quoteId);
+  const cancel = useCancelVisit(v.quoteId);
+  return (
+    <div className="overflow-hidden rounded-large border border-border bg-card">
+      <div className="p-3.5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-medium">{TYPE_LABEL[v.type]}</span>
+          <StatusChip label={STATUS_LABEL[v.status]} varName={STATUS_VAR[v.status]} size="sm" />
+        </div>
+        <p className="mt-1 line-clamp-1 text-xs text-text-muted">
+          <strong className="text-foreground">{v.quoteCategoryName}</strong> · {v.providerName}
+        </p>
+      </div>
+      <VisitManageCard
+        type={v.type}
+        scheduledAt={v.scheduledAt}
+        onReschedule={async (iso, reason) => {
+          await reschedule.mutateAsync({ visitId: v.id, scheduledAt: iso, reason });
+        }}
+        onCancel={async (reason) => {
+          await cancel.mutateAsync({ visitId: v.id, reason });
+        }}
+      />
+    </div>
+  );
+}
+
 export function MyVisitsPage() {
   const q = useMyVisits();
 
@@ -96,20 +126,24 @@ export function MyVisitsPage() {
             <ul className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
               {g.items.map((v) => (
                 <li key={v.id}>
-                  <Card to={`/orcamento/${v.quoteId}`} className="p-3.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-medium">{TYPE_LABEL[v.type]}</span>
-                      <StatusChip label={STATUS_LABEL[v.status]} varName={STATUS_VAR[v.status]} size="sm" />
-                    </div>
-                    <p className="mt-0.5 text-sm text-text-muted">
-                      {v.scheduledAt ? formatDateTime(v.scheduledAt) : '— sem data —'}
-                      {v.endsAt ? ` → ${formatDateTime(v.endsAt)}` : ''}
-                    </p>
-                    <p className="mt-1 line-clamp-1 text-xs text-text-muted">
-                      <strong className="text-foreground">{v.quoteCategoryName}</strong> ·{' '}
-                      {v.quoteDescription} · {v.providerName}
-                    </p>
-                  </Card>
+                  {v.status === 'CONFIRMED' ? (
+                    <ManageableVisitCard visit={v} />
+                  ) : (
+                    <Card to={`/orcamento/${v.quoteId}`} className="p-3.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium">{TYPE_LABEL[v.type]}</span>
+                        <StatusChip label={STATUS_LABEL[v.status]} varName={STATUS_VAR[v.status]} size="sm" />
+                      </div>
+                      <p className="mt-0.5 text-sm text-text-muted">
+                        {v.scheduledAt ? formatDateTime(v.scheduledAt) : '— sem data —'}
+                        {v.endsAt ? ` → ${formatDateTime(v.endsAt)}` : ''}
+                      </p>
+                      <p className="mt-1 line-clamp-1 text-xs text-text-muted">
+                        <strong className="text-foreground">{v.quoteCategoryName}</strong> ·{' '}
+                        {v.quoteDescription} · {v.providerName}
+                      </p>
+                    </Card>
+                  )}
                 </li>
               ))}
             </ul>
