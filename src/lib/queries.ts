@@ -264,6 +264,22 @@ export function useProfile() {
   return useQuery({ queryKey: ['profile'] as const, queryFn: api.getProfile });
 }
 
+/** Perfil público de um prestador (visão do cliente). */
+export function useProviderPublicProfile(providerId: string | undefined) {
+  return useQuery({
+    queryKey: ['provider-public', providerId] as const,
+    queryFn: () => api.getProviderPublicProfile(providerId as string),
+    enabled: Boolean(providerId),
+  });
+}
+
+export function useSendContact() {
+  return useMutation({
+    mutationFn: (input: { subject: string; category: string; message: string; name?: string; email?: string }) =>
+      api.sendContact(input),
+  });
+}
+
 export function useUpdateMe() {
   const qc = useQueryClient();
   return useMutation({

@@ -10,8 +10,13 @@ function colorFor(name: string): string {
 }
 
 const sizeMap = { sm: 'sm', md: 'md', lg: 'lg' } as const;
+const pxMap = { sm: 32, md: 40, lg: 64 } as const;
 
-/** Avatar do design system (HeroUI Avatar): foto (src) ou iniciais com cor determinística. */
+/**
+ * Avatar do design system: quando há `src`, renderiza a foto diretamente (um
+ * `<img>`, sem depender do fallback do HeroUI); caso contrário mostra as iniciais
+ * com cor determinística pelo nome.
+ */
 export function Avatar({
   name,
   src,
@@ -22,14 +27,28 @@ export function Avatar({
   size?: 'sm' | 'md' | 'lg';
 }) {
   const initial = (name || '?').slice(0, 1).toUpperCase();
+  if (src) {
+    const px = pxMap[size];
+    return (
+      <img
+        src={src}
+        alt={name}
+        width={px}
+        height={px}
+        loading="lazy"
+        decoding="async"
+        className="shrink-0 rounded-full object-cover"
+        style={{ width: px, height: px }}
+      />
+    );
+  }
   return (
     <HAvatar
       name={initial}
-      src={src ?? undefined}
       size={sizeMap[size]}
       radius="full"
       className="shrink-0 font-semibold text-white"
-      style={src ? undefined : { backgroundColor: colorFor(name || '?') }}
+      style={{ backgroundColor: colorFor(name || '?') }}
       getInitials={(n) => n}
     />
   );

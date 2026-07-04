@@ -270,6 +270,9 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
       disabled={conversation?.status !== 'ACTIVE'}
       autoFocusComposer
       onBack={onBack}
+      onOpenMenu={(action) => {
+        if (action === 'details' && conversation) navigate(`/prestador/${conversation.counterpartId}`);
+      }}
     />
   );
 }

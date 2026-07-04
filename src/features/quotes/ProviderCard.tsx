@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
+import { LuBuilding2 } from 'react-icons/lu';
 import { useAcceptProposal, useConfirmVisit, useRejectProposal } from '../../lib/queries';
 import { formatBRL, formatDateTime } from '../../lib/format';
 import { Avatar, Button, Card, RatingStars } from '../../components/ui';
@@ -130,13 +132,21 @@ export function ProviderCard({
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={() => onOpenChat(conv.id)}
-            className="mt-3 inline-flex items-center gap-0.5 text-xs font-medium text-text-muted hover:text-foreground"
-          >
-            Abrir conversa <IconChevronRight size={13} />
-          </button>
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+            <button
+              type="button"
+              onClick={() => onOpenChat(conv.id)}
+              className="inline-flex items-center gap-0.5 text-xs font-medium text-text-muted hover:text-foreground"
+            >
+              Abrir conversa <IconChevronRight size={13} />
+            </button>
+            <Link
+              to={`/prestador/${conv.counterpartId}`}
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+            >
+              <LuBuilding2 size={13} /> Ver perfil da empresa
+            </Link>
+          </div>
 
           {(accept.isError || reject.isError || confirmVisit.isError) && (
             <p className="mt-1 text-xs text-danger">

@@ -1,10 +1,11 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Accordion, AccordionItem } from '@heroui/react';
 import { brand } from '@orcalink/design-tokens/brand.config';
 import { links } from '@orcalink/design-tokens/links.config';
 import { useCategories } from '../../lib/queries';
 import { Button, ButtonLink } from '../../components/ui';
+import { ContactModal } from '../../components/ContactModal';
 import {
   IconArrowRight,
   IconCity,
@@ -266,15 +267,21 @@ function Faq() {
 
 /* ───────── Footer ───────── */
 function Footer() {
+  const [contactOpen, setContactOpen] = useState(false);
   return (
     <footer className="border-t border-border bg-content1/50">
+      <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <p className="text-lg font-bold text-primary">{brand.name}</p>
           <p className="mt-2 text-sm text-text-muted">Conectando você aos melhores profissionais.</p>
         </div>
         <FooterCol title="Plataforma" items={[['Solicitar orçamento', '/login'], ['Sou profissional', links.providerUrl], ['Perguntas frequentes', '#faq']]} />
-        <FooterCol title="Legal" items={[['Política de privacidade', '#'], ['Termos de uso', '#'], ['Contato', `mailto:${brand.supportEmail}`]]} />
+        <FooterCol
+          title="Legal"
+          items={[['Política de privacidade', '#'], ['Termos de uso', '#']]}
+          onContact={() => setContactOpen(true)}
+        />
         <FooterCol title="Social" items={[['Instagram', '#'], ['LinkedIn', '#'], ['Facebook', '#']]} />
       </div>
       <div className="border-t border-border">
@@ -291,7 +298,7 @@ function Footer() {
   );
 }
 
-function FooterCol({ title, items }: { title: string; items: [string, string][] }) {
+function FooterCol({ title, items, onContact }: { title: string; items: [string, string][]; onContact?: () => void }) {
   return (
     <div>
       <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">{title}</p>
@@ -309,6 +316,13 @@ function FooterCol({ title, items }: { title: string; items: [string, string][] 
             )}
           </li>
         ))}
+        {onContact && (
+          <li>
+            <button type="button" onClick={onContact} className="text-sm text-text-muted hover:text-foreground">
+              Contato
+            </button>
+          </li>
+        )}
       </ul>
     </div>
   );

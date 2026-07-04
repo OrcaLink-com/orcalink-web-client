@@ -167,6 +167,52 @@ export interface ConversationSummary {
   latestProposal?: Proposal;
 }
 
+/** Item de portfólio do prestador (perfil público). */
+export interface PortfolioItem {
+  id?: string;
+  url: string;
+  title?: string;
+  description?: string;
+  categoryId?: string;
+  date?: string;
+}
+
+export interface PublicReview {
+  authorName: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+}
+
+/** Perfil público do prestador (GET /providers/:id/profile). */
+export interface PublicProviderProfile {
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+  companyName: string | null;
+  tradeName: string | null;
+  bio: string | null;
+  history: string | null;
+  logoUrl: string | null;
+  coverUrl: string | null;
+  foundedYear: number | null;
+  specialties: string[];
+  citiesServed: string[];
+  avgResponseMinutes: number | null;
+  phone: string | null;
+  categoryIds: string[];
+  categories: { id: string; name: string }[];
+  portfolio: PortfolioItem[];
+  social: { instagram?: string; facebook?: string; website?: string; whatsapp?: string };
+  ratingAvg: number;
+  ratingCount: number;
+  serviceRadiusKm: number | null;
+  workingDays: string;
+  workingHourStart: number;
+  workingHourEnd: number;
+  reviews: PublicReview[];
+}
+
 /** Negociação na visão global do cliente (lista CRM): summary + contexto do orçamento. */
 export interface ClientConversation extends ConversationSummary {
   quoteDescription: string;

@@ -11,6 +11,7 @@ import type {
   Message,
   MyVisit,
   OtpChannel,
+  PublicProviderProfile,
   UpdateMeInput,
   PricingView,
   Proposal,
@@ -199,6 +200,12 @@ export const api = {
   },
   reopenConversation(conversationId: string) {
     return request<{ ok: boolean }>(`/conversations/${conversationId}/reopen`, { method: 'POST' });
+  },
+  getProviderPublicProfile(providerId: string) {
+    return request<PublicProviderProfile>(`/providers/${providerId}/profile`);
+  },
+  sendContact(input: { subject: string; category: string; message: string; name?: string; email?: string }) {
+    return request<{ ok: boolean; id: string }>('/contact', jsonBody(input));
   },
   sendMessage(conversationId: string, body: string) {
     return request<Message>(`/conversations/${conversationId}/messages`, jsonBody({ body }));

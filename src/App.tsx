@@ -16,6 +16,7 @@ const MyVisitsPage = lazy(() => import('./features/quotes/MyVisitsPage').then((m
 const InboxPage = lazy(() => import('./features/inbox/InboxPage').then((m) => ({ default: m.InboxPage })));
 const EuPage = lazy(() => import('./features/profile/EuPage').then((m) => ({ default: m.EuPage })));
 const ProfilePage = lazy(() => import('./features/profile/ProfilePage').then((m) => ({ default: m.ProfilePage })));
+const ProviderProfilePage = lazy(() => import('./features/providers/ProviderProfilePage').then((m) => ({ default: m.ProviderProfilePage })));
 const ChatDemoPage = lazy(() => import('./features/chat-demo/ChatDemoPage').then((m) => ({ default: m.ChatDemoPage })));
 
 function Loading() {
@@ -50,6 +51,7 @@ export function App() {
           <Route path="negociacoes" element={<Navigate to="/" replace />} />
           <Route path="eu" element={<EuPage />} />
           <Route path="perfil" element={<ProfilePage />} />
+          <Route path="prestador/:providerId" element={<ProviderProfilePage />} />
           <Route path="inbox" element={<InboxPage />} />
           <Route path="novo" element={<NewQuotePage />} />
           <Route path="visitas" element={<MyVisitsPage />} />

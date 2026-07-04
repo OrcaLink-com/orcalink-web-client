@@ -1,7 +1,9 @@
-import { LuPencil } from 'react-icons/lu';
+import { useState } from 'react';
+import { LuHeadphones, LuPencil } from 'react-icons/lu';
 import { useAuth } from '../../auth/AuthContext';
 import { useProfile } from '../../lib/queries';
 import { Avatar, Button, ButtonLink, Card, ListRow } from '../../components/ui';
+import { ContactModal } from '../../components/ContactModal';
 import {
   IconAgenda,
   IconInbox,
@@ -13,9 +15,11 @@ import {
 export function EuPage() {
   const { user, logout } = useAuth();
   const profile = useProfile();
+  const [contactOpen, setContactOpen] = useState(false);
 
   return (
     <div className="space-y-6">
+      <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} authenticated />
       <div className="flex items-center gap-4">
         <Avatar name={user?.name ?? 'Você'} src={profile.data?.avatarUrl} size="lg" />
         <div className="min-w-0 flex-1">
@@ -32,6 +36,12 @@ export function EuPage() {
         <ListRow icon={<IconQuotes size={18} />} title="Meus orçamentos" to="/" />
         <ListRow icon={<IconAgenda size={18} />} title="Minhas visitas" to="/visitas" />
         <ListRow icon={<IconInbox size={18} />} title="Notificações" to="/inbox" />
+        <ListRow
+          icon={<LuHeadphones size={18} />}
+          title="Falar com a Orca Link"
+          subtitle="Dúvidas, suporte, sugestões"
+          onClick={() => setContactOpen(true)}
+        />
       </Card>
 
       <Button
