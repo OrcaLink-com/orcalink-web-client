@@ -11,21 +11,25 @@ import {
   usePay,
   usePricing,
   useProfile,
+  useCreateReview,
   useQuote,
   useQuoteConversations,
   useRejectProposal,
   useReopenConversation,
   useRescheduleVisit,
+  useReview,
   useSendMessage,
   useVisits,
 } from '../../lib/queries';
 import { usePeerTyping, usePresence, useQuoteRealtime, useTypingSignal } from '../../lib/realtime';
 import { ChatConversationView } from '../../components/Chat';
 import type { ChatActionHandlers, ChatMessage, ChatParticipant } from '../../components/Chat';
+import { APP_TZ } from '../../lib/format';
 import { messagesToChat, toServiceStatus } from './chatAdapter';
 import { computeNextStep } from './nextStep';
 import { NextStepBanner } from '../../components/NextStepBanner';
 import { NextActionCard } from '../../components/NextActionCard';
+import { ReviewComposer } from '../../components/ReviewComposer';
 import { LuCalendarCheck, LuCircleCheck, LuRotateCcw } from 'react-icons/lu';
 import type { Visit } from '../../lib/types';
 
@@ -68,6 +72,9 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
   const reopen = useReopenConversation(quoteId);
   const reschedule = useRescheduleVisit(quoteId);
   const pay = usePay(quoteId);
+  const reviewQ = useReview(quoteId, quoteQ.data?.status === 'FINISHED');
+  const createReview = useCreateReview(quoteId);
+  const hasReview = Boolean(reviewQ.data);
 
   const conversation = convsQ.data?.find((c) => c.id === conversationId);
   const proposal = conversation?.latestProposal;
@@ -161,16 +168,6 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
         },
       });
     }
-    // Serviço concluído → card de avaliação.
-    if (quoteStatus === 'FINISHED') {
-      list.push({
-        id: 'finished-card',
-        type: 'service_finished',
-        sender: peer,
-        createdAt: new Date().toISOString(),
-        payload: { finishedAt: new Date().toISOString() },
-      });
-    }
     return list;
   }, [messagesQ.data, conversation, peer, user?.id, otherFinalsPending, awaitingVisit, isContracted, quoteStatus, pricingQ.data]);
 
@@ -206,7 +203,15 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
   // Card de ação premium fixado acima do input (bottom sheet) — próxima ação do cliente.
   const confirmableVisit = providerVisits.find((v) => v.type === 'IN_LOCO' && v.status === 'CONFIRMED');
   let aboveComposer: ReactNode;
-  if (conversation?.status === 'CLOSED') {
+  if (quoteStatus === 'FINISHED' && !hasReview && conversation?.status === 'ACTIVE') {
+    aboveComposer = (
+      <ReviewComposer
+        onSubmit={async (rating, comment) => {
+          await createReview.mutateAsync({ rating, comment });
+        }}
+      />
+    );
+  } else if (conversation?.status === 'CLOSED') {
     aboveComposer = (
       <NextActionCard
         tone="primary"
@@ -277,8 +282,8 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
   );
 }
 
-/** "HH:mm" de um ISO (ou "--:--"). */
+/** "HH:mm" de um ISO (ou "--:--"), no fuso da plataforma. */
 function timeOf(iso: string | null): string {
   if (!iso) return '--:--';
-  return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: APP_TZ });
 }
