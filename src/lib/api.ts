@@ -201,6 +201,12 @@ export const api = {
   reopenConversation(conversationId: string) {
     return request<{ ok: boolean }>(`/conversations/${conversationId}/reopen`, { method: 'POST' });
   },
+  registerPushToken(token: string) {
+    return request<void>('/notifications/push/register', jsonBody({ token, platform: 'web' }));
+  },
+  unregisterPushToken(token: string) {
+    return request<void>('/notifications/push/register', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) });
+  },
   getProviderPublicProfile(providerId: string) {
     return request<PublicProviderProfile>(`/providers/${providerId}/profile`);
   },

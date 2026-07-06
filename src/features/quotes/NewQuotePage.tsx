@@ -22,7 +22,7 @@ export function NewQuotePage() {
   const [zipCode, setZipCode] = useState('');
   const [budgetMax, setBudgetMax] = useState('');
   const [budgetMode, setBudgetMode] = useState<'remote' | 'visit'>('remote');
-  const [errors, setErrors] = useState<{ categoryId?: string; title?: string; description?: string }>({});
+  const [errors, setErrors] = useState<{ categoryId?: string; title?: string; description?: string; photos?: string }>({});
 
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -87,6 +87,10 @@ export function NewQuotePage() {
     if (!categoryId) next.categoryId = 'Escolha uma categoria.';
     if (title.trim().length < 3) next.title = 'Dê um título ao projeto (mín. 3 caracteres).';
     if (description.trim().length < 10) next.description = 'Descreva o serviço com pelo menos 10 caracteres.';
+    // Sem visita técnica, o profissional orça só pelas fotos/descrição → foto obrigatória.
+    if (budgetMode === 'remote' && imageUrls.length === 0) {
+      next.photos = 'Sem visita técnica, envie ao menos uma foto para o profissional conseguir orçar.';
+    }
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
@@ -136,14 +140,20 @@ export function NewQuotePage() {
               onChange={setTitle}
               error={errors.title}
             />
-            <Textarea
-              label="Descrição do serviço"
-              placeholder="Ex.: Preciso pintar dois quartos de aprox. 12m² cada…"
-              value={description}
-              onChange={setDescription}
-              minRows={5}
-              error={errors.description}
-            />
+            <div>
+              <Textarea
+                label="Descrição do serviço"
+                placeholder="Ex.: Preciso pintar dois quartos de aprox. 12m² cada, paredes com mofo, teto incluso…"
+                value={description}
+                onChange={setDescription}
+                minRows={5}
+                error={errors.description}
+              />
+              <p className="mt-1.5 px-1 text-xs text-text-muted">
+                💡 Quanto mais detalhes (medidas, materiais, estado atual, prazo), mais precisas e rápidas
+                serão as propostas.
+              </p>
+            </div>
           </Card>
         </section>
 
@@ -218,7 +228,7 @@ export function NewQuotePage() {
         <div>
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-medium">
-              Fotos (opcional) · {imageUrls.length}/{MAX_IMAGES}
+              Fotos {budgetMode === 'remote' ? <span className="text-danger">(obrigatórias sem visita)</span> : '(opcional)'} · {imageUrls.length}/{MAX_IMAGES}
             </p>
             {remaining != null && (
               <span
@@ -271,6 +281,7 @@ export function NewQuotePage() {
                   : 'Adicionar fotos'}
           </label>
           {uploadError && <p className="mt-1 text-xs text-danger">{uploadError}</p>}
+          {errors.photos && <p className="mt-1 text-xs text-danger">{errors.photos}</p>}
         </div>
 
         {createQuote.isError && (

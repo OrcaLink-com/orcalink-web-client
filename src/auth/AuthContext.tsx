@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { api, clearSession, getStoredUser, setAuthLostHandler } from '../lib/api';
+import { disablePush, initPush } from '../lib/push';
 import type { AuthUser, OtpChannel } from '../lib/types';
 
 interface AuthContextValue {
@@ -33,6 +34,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setAuthLostHandler(null);
   }, []);
 
+  // Push (FCM) — registra o token quando autenticado (no-op sem credenciais).
+  useEffect(() => {
+    if (user) void initPush();
+  }, [user]);
+
   const requestOtp = useCallback(
     (channel: OtpChannel, destination: string) => api.requestOtp(channel, destination),
     [],
@@ -47,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(async () => {
+    await disablePush();
     await api.logout();
     setUser(null);
   }, []);

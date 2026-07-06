@@ -45,6 +45,8 @@ export function MessageToaster() {
       void qc.invalidateQueries({ queryKey: ['notifications'] });
       // Já olhando exatamente este chat → não incomoda; a conversa atualiza sozinha.
       if (getActiveConversation() === msg.conversationId) return;
+      // Aba em background → quem notifica é o Push (FCM), não o Toast. Evita duplicar.
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
       const key = `${msg.messageId}-${Date.now()}`;
       setToasts((prev) => [...prev.slice(-2), { ...msg, key }]);
       setTimeout(() => {

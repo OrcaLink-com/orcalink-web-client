@@ -43,16 +43,19 @@ export function QuoteDetailPage() {
 
   const [openConv, setOpenConv] = useState<string | null>(null);
 
-  // Abertura do chat pela notificação (toast) → abre o Drawer da conversa.
+  // Abertura do chat pela notificação (toast → state; push/deep-link → ?chat=).
   const location = useLocation();
-  const openChat = (location.state as { openChat?: string } | null)?.openChat;
+  const openChat =
+    (location.state as { openChat?: string } | null)?.openChat ??
+    new URLSearchParams(location.search).get('chat') ??
+    undefined;
   useEffect(() => {
     if (openChat) {
       setOpenConv(openChat);
-      // Limpa o state para não reabrir ao navegar/voltar.
-      window.history.replaceState({}, '');
+      // Limpa o state/param para não reabrir ao navegar/voltar.
+      window.history.replaceState({}, '', location.pathname);
     }
-  }, [openChat]);
+  }, [openChat, location.pathname]);
 
   const timeline = useMemo(
     () => (quote ? buildQuoteTimeline(quote, convs, visits) : []),

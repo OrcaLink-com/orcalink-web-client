@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { LuTarget, LuEye, LuHeart } from 'react-icons/lu';
 import { Accordion, AccordionItem } from '@heroui/react';
 import { brand } from '@orcalink/design-tokens/brand.config';
 import { links } from '@orcalink/design-tokens/links.config';
@@ -30,6 +31,7 @@ export function LandingPage() {
       <LandingNav />
       <Hero />
       <StatsStrip />
+      <MissionVisionValues />
       <Services />
       <HowItWorks />
       <Benefits />
@@ -166,25 +168,63 @@ function Services() {
 
 /* ───────── Como funciona ───────── */
 function HowItWorks() {
-  const steps = [
-    'Solicite um orçamento',
-    'Receba propostas',
-    'Escolha o melhor profissional',
-    'Acompanhe o serviço',
-    'Avalie o prestador',
+  const steps: { title: string; desc: string }[] = [
+    { title: 'Solicite um orçamento', desc: 'Descreva o serviço, adicione fotos e envie em minutos.' },
+    { title: 'Receba propostas', desc: 'Profissionais verificados respondem com valores e prazos.' },
+    { title: 'Escolha o melhor profissional', desc: 'Compare propostas, avaliações e portfólio.' },
+    { title: 'Pague com segurança pela plataforma', desc: 'O valor fica em custódia e só é liberado quando o serviço é concluído.' },
+    { title: 'Acompanhe o serviço', desc: 'Chat, agendamento e status em tempo real.' },
+    { title: 'Avalie o prestador', desc: 'Sua nota ajuda toda a comunidade.' },
   ];
   return (
-    <Section eyebrow="Como funciona" title="Do pedido à avaliação, em 5 passos">
-      <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <Section eyebrow="Como funciona" title="Do pedido à avaliação, em 6 passos">
+      <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {steps.map((s, i) => (
-          <li key={s} className="rounded-large border border-border bg-content1 p-5 shadow-card">
+          <li key={s.title} className="rounded-large border border-border bg-content1 p-5 shadow-card">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
               {i + 1}
             </span>
-            <p className="mt-3 text-sm font-medium">{s}</p>
+            <p className="mt-3 text-sm font-semibold">{s.title}</p>
+            <p className="mt-1 text-xs text-text-muted">{s.desc}</p>
           </li>
         ))}
       </ol>
+    </Section>
+  );
+}
+
+/* ───────── Missão · Visão · Valores ───────── */
+function MissionVisionValues() {
+  const cards = [
+    {
+      icon: <LuTarget size={20} />,
+      label: 'Missão',
+      text: 'Conectar pessoas aos melhores profissionais de serviços, com transparência, segurança e simplicidade.',
+    },
+    {
+      icon: <LuEye size={20} />,
+      label: 'Visão',
+      text: 'Ser a plataforma de referência em contratação de serviços no Brasil, onde cada contratação inspira confiança.',
+    },
+    {
+      icon: <LuHeart size={20} />,
+      label: 'Valores',
+      text: 'Confiança, transparência, qualidade e respeito — em cada orçamento, conversa e pagamento.',
+    },
+  ];
+  return (
+    <Section eyebrow="Quem somos" title="Missão, visão e valores" className="bg-content1/30">
+      <div className="grid gap-4 sm:grid-cols-3">
+        {cards.map((c) => (
+          <div key={c.label} className="rounded-large border border-border bg-content1 p-5 shadow-card">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+              {c.icon}
+            </span>
+            <p className="mt-3 text-sm font-semibold">{c.label}</p>
+            <p className="mt-1 text-sm text-text-muted">{c.text}</p>
+          </div>
+        ))}
+      </div>
     </Section>
   );
 }
