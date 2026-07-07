@@ -92,6 +92,40 @@ async function ensureSdk(): Promise<void> {
   await loadPromise;
 }
 
+/**
+ * Aguarda ESTE registro (o do FCM, no escopo dedicado) ter um SW ATIVO.
+ * `navigator.serviceWorker.ready` resolve para o SW que controla a página (o do
+ * PWA, escopo "/") — por isso não serve aqui e o `subscribe` falhava com
+ * "no active Service Worker".
+ */
+function waitForActive(registration: ServiceWorkerRegistration): Promise<void> {
+  return new Promise((resolve) => {
+    if (registration.active) return resolve();
+    const sw = registration.installing || registration.waiting;
+    if (!sw) {
+      // Sem SW em transição: aguarda o updatefound como fallback.
+      const onUpdate = () => {
+        const next = registration.installing;
+        if (next) {
+          next.addEventListener('statechange', () => {
+            if (next.state === 'activated') resolve();
+          });
+        }
+      };
+      registration.addEventListener('updatefound', onUpdate, { once: true });
+      // Timeout de segurança para não travar o fluxo.
+      setTimeout(resolve, 4000);
+      return;
+    }
+    const onState = () => {
+      if (sw.state === 'activated') resolve();
+    };
+    sw.addEventListener('statechange', onState);
+    if (sw.state === 'activated') resolve();
+    setTimeout(resolve, 4000);
+  });
+}
+
 let currentToken: string | null = null;
 
 /**
@@ -133,8 +167,11 @@ export async function initPush(): Promise<void> {
       scope: SW_SCOPE,
     });
     log('Service Worker do FCM registrado no escopo', SW_SCOPE);
-    // Garante que o SW esteja ativo antes de pedir o token.
-    await navigator.serviceWorker.ready.catch(() => undefined);
+    // Garante que ESTE registro (FCM) esteja ATIVO antes de pedir o token.
+    // `navigator.serviceWorker.ready` resolveria para o SW do PWA (escopo "/"),
+    // fazendo o getToken chamar pushManager.subscribe sem SW ativo → AbortError.
+    await waitForActive(registration);
+    log('Service Worker do FCM ativo.');
 
     if (!fb().apps?.length) fb().initializeApp(cfg.config);
     const messaging = fb().messaging();
