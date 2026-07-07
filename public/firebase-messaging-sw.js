@@ -2,14 +2,17 @@
 /**
  * Service Worker do Firebase Cloud Messaging (Push em background/fechado).
  *
- * A config (pública) chega pela query string no registro do SW (ver lib/push.ts),
- * então este arquivo NÃO precisa ser editado ao adicionar as credenciais.
- * Se a config não vier (FCM não configurado), o SW fica inerte.
+ * Registrado num ESCOPO DEDICADO (/firebase-cloud-messaging-push-scope) para não
+ * colidir com o Service Worker do PWA. A config (pública) chega pela query string
+ * no registro (ver lib/push.ts), então este arquivo NÃO precisa ser editado ao
+ * adicionar as credenciais. Se a config não vier, o SW fica inerte.
  *
- * Sempre recebemos mensagens DATA-ONLY: aqui montamos a notificação e, no
- * clique, abrimos o app já na tela do evento (navegação contextual).
+ * Recebemos mensagens DATA-ONLY: montamos a notificação e, no clique, abrimos o
+ * app já na tela do evento. Logs com prefixo `[push-sw]` (inspecione o SW em
+ * DevTools → Application → Service Workers → o deste escopo).
  */
 const FIREBASE_VERSION = '10.12.2';
+const log = (...a) => console.info('[push-sw]', ...a);
 
 try {
   importScripts(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app-compat.js`);
@@ -27,8 +30,10 @@ try {
   if (config.apiKey && config.messagingSenderId && config.appId) {
     firebase.initializeApp(config);
     const messaging = firebase.messaging();
+    log('inicializado (projectId:', config.projectId + ').');
 
     messaging.onBackgroundMessage((payload) => {
+      log('mensagem em BACKGROUND recebida:', payload);
       const d = payload.data || {};
       const title = d.title || 'OrcaLink';
       const options = {
@@ -38,15 +43,19 @@ try {
         tag: d.conversationId || d.kind || 'orcalink',
         data: { link: d.link || '/' },
       };
+      log('exibindo notificação:', title, options.body);
       self.registration.showNotification(title, options);
     });
+  } else {
+    log('config ausente na query — SW inerte (Push não configurado).');
   }
 } catch (e) {
-  // FCM não configurado ou CDN indisponível — SW segue sem push.
+  console.error('[push-sw] erro ao inicializar FCM no SW:', e);
 }
 
 // Clique na notificação → abre/foca o app na tela do evento.
 self.addEventListener('notificationclick', (event) => {
+  log('clique na notificação → abrindo', event.notification && event.notification.data);
   event.notification.close();
   const link = (event.notification.data && event.notification.data.link) || '/';
   event.waitUntil(
