@@ -86,7 +86,7 @@ export function CompareProposalsPage() {
   async function onAccept(proposalId: string) {
     try {
       await accept.mutateAsync(proposalId);
-      navigate(`/orcamento/${quoteId}`);
+      navigate(`/app/orcamento/${quoteId}`);
     } catch {
       /* erro exibido via state global do react-query (não fluxo crítico aqui) */
     }
@@ -185,7 +185,7 @@ export function CompareProposalsPage() {
               </button>
             </div>
             <Link
-              to={`/orcamento/${quoteId}/conversa/${f.conv.id}`}
+              to={`/app/orcamento/${quoteId}/conversa/${f.conv.id}`}
               className="mt-2 block text-center text-xs text-text-muted underline"
             >
               Abrir conversa

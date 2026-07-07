@@ -4,6 +4,7 @@ import { LuTarget, LuEye, LuHeart } from 'react-icons/lu';
 import { Accordion, AccordionItem } from '@heroui/react';
 import { brand } from '@orcalink/design-tokens/brand.config';
 import { links } from '@orcalink/design-tokens/links.config';
+import { useAuth } from '../../auth/AuthContext';
 import { useCategories } from '../../lib/queries';
 import { Button, ButtonLink } from '../../components/ui';
 import { ContactModal } from '../../components/ContactModal';
@@ -44,6 +45,7 @@ export function LandingPage() {
 
 /* ───────── Nav ───────── */
 function LandingNav() {
+  const { isAuthenticated } = useAuth();
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-lg">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5">
@@ -57,8 +59,8 @@ function LandingNav() {
           >
             Sou profissional
           </a>
-          <ButtonLink to="/login" size="sm">
-            Entrar
+          <ButtonLink to={isAuthenticated ? '/app' : '/login'} size="sm">
+            {isAuthenticated ? 'Entrar no app' : 'Entrar'}
           </ButtonLink>
         </nav>
       </div>

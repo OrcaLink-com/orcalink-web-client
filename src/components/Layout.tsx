@@ -14,7 +14,7 @@ export function Layout() {
   const profile = useProfile();
 
   // Fluxos focados (negociação e wizard de novo orçamento) escondem a navegação no mobile.
-  const focusedFlow = pathname.includes('/negociacao/') || pathname === '/novo';
+  const focusedFlow = pathname.includes('/negociacao/') || pathname === '/app/novo';
 
   return (
     <div className="flex min-h-dvh bg-background">
@@ -27,12 +27,12 @@ export function Layout() {
         {/* Header (mobile) */}
         {!focusedFlow && (
           <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-background/85 px-4 py-3 backdrop-blur-lg lg:hidden">
-            <Link to="/" className="text-lg font-bold tracking-tight text-primary">
+            <Link to="/app" className="text-lg font-bold tracking-tight text-primary">
               {brand.name}
             </Link>
             <div className="flex items-center gap-1.5">
               <NotificationsBell />
-              <Link to="/eu" aria-label="Sua conta">
+              <Link to="/app/eu" aria-label="Sua conta">
                 <Avatar name={user?.name ?? '?'} src={profile.data?.avatarUrl} size="sm" />
               </Link>
             </div>

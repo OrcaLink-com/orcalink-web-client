@@ -10,9 +10,9 @@ import { IconQuotes, IconPlus, IconUser } from './icons';
 export function TabBar() {
   return (
     <nav className="sticky bottom-0 z-20 flex border-t border-border bg-background/85 backdrop-blur-lg lg:hidden">
-      <Tab to="/" icon={<IconQuotes size={22} />} label="Orçamentos" />
-      <Tab to="/novo" icon={<IconPlus size={22} />} label="Novo" />
-      <Tab to="/eu" icon={<IconUser size={22} />} label="Eu" />
+      <Tab to="/app" icon={<IconQuotes size={22} />} label="Orçamentos" />
+      <Tab to="/app/novo" icon={<IconPlus size={22} />} label="Novo" />
+      <Tab to="/app/eu" icon={<IconUser size={22} />} label="Eu" />
     </nav>
   );
 }
@@ -21,7 +21,7 @@ function Tab({ to, icon, label }: { to: string; icon: ReactNode; label: string }
   return (
     <NavLink
       to={to}
-      end={to === '/'}
+      end={to === '/app'}
       className={({ isActive }) =>
         `relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] transition-colors ${
           isActive ? 'font-semibold text-primary' : 'text-text-muted hover:text-foreground'

@@ -9,7 +9,7 @@ export function NotificationsBell() {
   const unread = q.data?.unreadCount ?? 0;
   return (
     <Link
-      to="/inbox"
+      to="/app/inbox"
       className="flex h-10 w-10 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-content2 hover:text-foreground"
       aria-label="Notificações"
     >

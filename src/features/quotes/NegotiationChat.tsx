@@ -198,7 +198,7 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
     onRejectProposal: async (id) => {
       await rejectProposal.mutateAsync(id);
     },
-    onCompareProposals: () => navigate(`/orcamento/${quoteId}/propostas`),
+    onCompareProposals: () => navigate(`/app/orcamento/${quoteId}/propostas`),
     onAcceptVisit: async (visitId) => {
       await confirmVisit.mutateAsync(visitId);
     },
@@ -322,7 +322,7 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
       autoFocusComposer
       onBack={onBack}
       onOpenMenu={(action) => {
-        if (action === 'details' && conversation) navigate(`/prestador/${conversation.counterpartId}`);
+        if (action === 'details' && conversation) navigate(`/app/prestador/${conversation.counterpartId}`);
       }}
     />
   );

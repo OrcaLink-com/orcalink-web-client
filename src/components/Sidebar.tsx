@@ -24,26 +24,26 @@ export function Sidebar() {
 
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-border bg-background px-3 py-5 lg:flex">
-      <Link to="/" className="px-2" aria-label={brand.name}>
+      <Link to="/app" className="px-2" aria-label={brand.name}>
         <img src="/brand/logo.svg" alt={brand.name} className="h-11 w-auto" />
       </Link>
 
       <Link
-        to="/novo"
+        to="/app/novo"
         className="mt-6 flex items-center justify-center gap-2 rounded-medium bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-secondary"
       >
         <IconPlus size={16} /> Novo orçamento
       </Link>
 
       <nav className="mt-6 space-y-1">
-        <Item to="/" icon={<IconQuotes size={20} />} label="Orçamentos" end />
-        <Item to="/inbox" icon={<IconInbox size={20} />} label="Notificações" badge={unread} />
-        <Item to="/eu" icon={<IconUser size={20} />} label="Eu" />
+        <Item to="/app" icon={<IconQuotes size={20} />} label="Orçamentos" end />
+        <Item to="/app/inbox" icon={<IconInbox size={20} />} label="Notificações" badge={unread} />
+        <Item to="/app/eu" icon={<IconUser size={20} />} label="Eu" />
       </nav>
 
       <div className="mt-auto border-t border-border pt-3">
         <Link
-          to="/site"
+          to="/"
           className="mb-1 flex items-center gap-3 rounded-medium px-3 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-content2 hover:text-foreground"
         >
           <IconGlobe size={18} />

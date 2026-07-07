@@ -129,7 +129,7 @@ export function MyVisitsPage() {
                   {v.status === 'CONFIRMED' ? (
                     <ManageableVisitCard visit={v} />
                   ) : (
-                    <Card to={`/orcamento/${v.quoteId}`} className="p-3.5">
+                    <Card to={`/app/orcamento/${v.quoteId}`} className="p-3.5">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium">{TYPE_LABEL[v.type]}</span>
                         <StatusChip label={STATUS_LABEL[v.status]} varName={STATUS_VAR[v.status]} size="sm" />

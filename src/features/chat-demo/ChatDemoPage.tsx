@@ -112,7 +112,7 @@ export function ChatDemoPage() {
   return (
     <div className="mx-auto flex h-dvh max-w-6xl flex-col gap-3 bg-background p-3 text-foreground">
       <div className="flex items-center gap-2">
-        <Link to="/" className="flex items-center gap-1 text-sm text-text-muted hover:text-foreground">
+        <Link to="/app" className="flex items-center gap-1 text-sm text-text-muted hover:text-foreground">
           <IconBack size={18} /> Voltar
         </Link>
         <span className="ml-auto rounded-full bg-primary/15 px-2.5 py-1 text-xs font-medium text-primary">

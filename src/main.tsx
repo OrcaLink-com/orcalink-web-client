@@ -10,6 +10,22 @@ import './index.css';
 
 const queryClient = new QueryClient();
 
+/**
+ * Após um novo deploy, os chunks com hash antigo somem do servidor; a Vercel
+ * responde `index.html` (text/html) no lugar do .js → o import dinâmico falha e
+ * a tela fica preta. Aqui recarregamos UMA vez para pegar o build novo (guarda
+ * contra loop de reload).
+ */
+window.addEventListener('vite:preloadError', (event) => {
+  event.preventDefault();
+  const KEY = 'chunk-reload-at';
+  const last = Number(sessionStorage.getItem(KEY) || 0);
+  if (Date.now() - last > 10_000) {
+    sessionStorage.setItem(KEY, String(Date.now()));
+    window.location.reload();
+  }
+});
+
 /** Liga a navegação do HeroUI (ex.: Button as Link) ao React Router. */
 function HeroUIWithRouter({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();

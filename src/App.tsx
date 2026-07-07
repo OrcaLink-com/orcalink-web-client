@@ -18,6 +18,7 @@ const EuPage = lazy(() => import('./features/profile/EuPage').then((m) => ({ def
 const ProfilePage = lazy(() => import('./features/profile/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 const ProviderProfilePage = lazy(() => import('./features/providers/ProviderProfilePage').then((m) => ({ default: m.ProviderProfilePage })));
 const ChatDemoPage = lazy(() => import('./features/chat-demo/ChatDemoPage').then((m) => ({ default: m.ChatDemoPage })));
+const NotFoundPage = lazy(() => import('./features/misc/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 
 function Loading() {
   return <Spinner label="Carregando…" />;
@@ -26,43 +27,50 @@ function Loading() {
 export function App() {
   const { isAuthenticated } = useAuth();
 
-  if (!isAuthenticated) {
-    return (
-      <Suspense fallback={<Loading />}>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
-    );
-  }
-
   return (
     <Suspense fallback={<Loading />}>
       <Routes>
-        {/* Landing acessível mesmo logado (sem o chrome do app). */}
-        <Route path="/site" element={<LandingPage />} />
-        {/* Demo do novo módulo de chat premium (tela cheia, isolada). */}
-        <Route path="/chat-demo" element={<ChatDemoPage />} />
-        <Route element={<Layout />}>
-          <Route index element={<MyQuotesPage />} />
-          {/* Negociações agora vivem dentro de cada orçamento (hub em "/"). */}
-          <Route path="negociacoes" element={<Navigate to="/" replace />} />
-          <Route path="eu" element={<EuPage />} />
-          <Route path="perfil" element={<ProfilePage />} />
-          <Route path="prestador/:providerId" element={<ProviderProfilePage />} />
-          <Route path="inbox" element={<InboxPage />} />
-          <Route path="novo" element={<NewQuotePage />} />
-          <Route path="visitas" element={<MyVisitsPage />} />
-          <Route path="orcamento/:quoteId" element={<QuoteDetailPage />} />
-          <Route path="orcamento/:quoteId/propostas" element={<CompareProposalsPage />} />
-          <Route path="orcamento/:quoteId/negociacao/:conversationId" element={<NegotiationPage />} />
-          {/* Compat com links antigos de conversa */}
-          <Route path="orcamento/:quoteId/conversa/:conversationId" element={<NegotiationPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
+        {/* Público: a landing é sempre a home em "/" (mesmo logado). */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/app" replace /> : <LoginPage />} />
+        {/* Compat: quem tinha "/site" salvo cai na landing. */}
+        <Route path="/site" element={<Navigate to="/" replace />} />
+
+        {/* Área autenticada sob "/app". */}
+        <Route
+          path="/app/*"
+          element={isAuthenticated ? <AuthenticatedApp /> : <Navigate to="/login" replace />}
+        />
+
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
+  );
+}
+
+/** Rotas internas do app (relativas a "/app"). */
+function AuthenticatedApp() {
+  return (
+    <Routes>
+      {/* Demo do módulo de chat premium (tela cheia, isolada). */}
+      <Route path="chat-demo" element={<ChatDemoPage />} />
+      <Route element={<Layout />}>
+        <Route index element={<MyQuotesPage />} />
+        {/* Negociações agora vivem dentro de cada orçamento (hub em "/app"). */}
+        <Route path="negociacoes" element={<Navigate to="/app" replace />} />
+        <Route path="eu" element={<EuPage />} />
+        <Route path="perfil" element={<ProfilePage />} />
+        <Route path="prestador/:providerId" element={<ProviderProfilePage />} />
+        <Route path="inbox" element={<InboxPage />} />
+        <Route path="novo" element={<NewQuotePage />} />
+        <Route path="visitas" element={<MyVisitsPage />} />
+        <Route path="orcamento/:quoteId" element={<QuoteDetailPage />} />
+        <Route path="orcamento/:quoteId/propostas" element={<CompareProposalsPage />} />
+        <Route path="orcamento/:quoteId/negociacao/:conversationId" element={<NegotiationPage />} />
+        {/* Compat com links antigos de conversa */}
+        <Route path="orcamento/:quoteId/conversa/:conversationId" element={<NegotiationPage />} />
+        <Route path="*" element={<NotFoundPage homeTo="/app" />} />
+      </Route>
+    </Routes>
   );
 }

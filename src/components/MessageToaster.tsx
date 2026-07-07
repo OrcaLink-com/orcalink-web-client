@@ -66,7 +66,7 @@ export function MessageToaster() {
   function open(t: Toast) {
     dismiss(t.key);
     // Abre o orçamento e sinaliza p/ abrir o chat na gaveta lateral (Drawer).
-    navigate(`/orcamento/${t.quoteId}`, { state: { openChat: t.conversationId } });
+    navigate(`/app/orcamento/${t.quoteId}`, { state: { openChat: t.conversationId } });
   }
 
   return (

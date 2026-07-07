@@ -141,7 +141,7 @@ export function ProviderCard({
               Abrir conversa <IconChevronRight size={13} />
             </button>
             <Link
-              to={`/prestador/${conv.counterpartId}`}
+              to={`/app/prestador/${conv.counterpartId}`}
               className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
             >
               <LuBuilding2 size={13} /> Ver perfil da empresa

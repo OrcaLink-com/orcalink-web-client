@@ -15,7 +15,7 @@ export function NegotiationPage() {
       <NegotiationChat
         quoteId={quoteId}
         conversationId={conversationId}
-        onBack={() => navigate(`/orcamento/${quoteId}`)}
+        onBack={() => navigate(`/app/orcamento/${quoteId}`)}
       />
     </div>
   );

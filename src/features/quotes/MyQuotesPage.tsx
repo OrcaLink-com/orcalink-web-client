@@ -72,7 +72,7 @@ export function MyQuotesPage() {
         title="Meus orçamentos"
         subtitle="Acompanhe suas solicitações e o status."
         action={
-          <ButtonLink to="/novo" size="sm" startContent={<IconPlus size={16} />}>
+          <ButtonLink to="/app/novo" size="sm" startContent={<IconPlus size={16} />}>
             Novo
           </ButtonLink>
         }
@@ -83,7 +83,7 @@ export function MyQuotesPage() {
           icon={<IconQuotes size={26} />}
           title="Você ainda não tem orçamentos"
           hint="Crie sua primeira solicitação e receba propostas de profissionais."
-          action={<ButtonLink to="/novo" startContent={<IconPlus size={16} />}>Criar meu primeiro orçamento</ButtonLink>}
+          action={<ButtonLink to="/app/novo" startContent={<IconPlus size={16} />}>Criar meu primeiro orçamento</ButtonLink>}
         />
       ) : (
         <>
@@ -113,7 +113,7 @@ export function MyQuotesPage() {
 
 function QuoteRow({ quote: q }: { quote: Quote }) {
   return (
-    <Card to={`/orcamento/${q.id}`} className="p-4">
+    <Card to={`/app/orcamento/${q.id}`} className="p-4">
       <div className="mb-1.5 flex items-center justify-between gap-2">
         <div className="min-w-0">
           <span className="block truncate font-semibold">{q.title ?? q.category.name}</span>

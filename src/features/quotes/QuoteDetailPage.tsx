@@ -68,7 +68,7 @@ export function QuoteDetailPage() {
 
   return (
     <div className="space-y-8">
-      <Link to="/" className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-foreground">
+      <Link to="/app" className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-foreground">
         <IconBack size={15} /> Meus orçamentos
       </Link>
 

@@ -110,7 +110,7 @@ export function NewQuotePage() {
       longitude: coords?.lng,
       imageUrls: imageUrls.length ? imageUrls : undefined,
     });
-    navigate('/');
+    navigate('/app');
   }
 
   return (

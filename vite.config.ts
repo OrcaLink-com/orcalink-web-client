@@ -17,12 +17,15 @@ export default defineConfig({
         theme_color: '#0b0e14',
         background_color: '#0b0e14',
         display: 'standalone',
-        start_url: '/',
+        start_url: '/app',
         scope: '/',
         categories: ['business', 'productivity', 'lifestyle'],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
         navigateFallback: '/index.html',
         runtimeCaching: [
           {
