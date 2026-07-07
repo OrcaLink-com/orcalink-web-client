@@ -182,12 +182,32 @@ export async function initPush(): Promise<void> {
       log('mensagem em FOREGROUND (silenciosa; Toast via WebSocket):', payload);
     });
 
-    const token: string = await messaging.getToken({
-      vapidKey: cfg.vapidKey,
-      serviceWorkerRegistration: registration,
-    });
+    let token: string;
+    try {
+      token = await messaging.getToken({
+        vapidKey: cfg.vapidKey,
+        serviceWorkerRegistration: registration,
+      });
+    } catch (err) {
+      // "push service error" costuma ser assinatura antiga presa no navegador
+      // (VAPID key trocada) OU VAPID key inválida. Limpamos a assinatura e tentamos 1x.
+      logErr('getToken falhou; limpando assinatura antiga e tentando novamente:', (err as Error)?.message ?? err);
+      try {
+        const existing = await registration.pushManager.getSubscription();
+        if (existing) {
+          await existing.unsubscribe();
+          log('assinatura push antiga removida.');
+        }
+      } catch (subErr) {
+        logErr('não foi possível remover a assinatura antiga:', subErr);
+      }
+      token = await messaging.getToken({
+        vapidKey: cfg.vapidKey,
+        serviceWorkerRegistration: registration,
+      });
+    }
     if (!token) {
-      logErr('getToken retornou vazio (verifique VAPID key e permissão).');
+      logErr('getToken retornou vazio (verifique a VAPID key e a permissão).');
       return;
     }
     log('token FCM obtido:', token.slice(0, 16) + '…');
@@ -200,7 +220,15 @@ export async function initPush(): Promise<void> {
     }
   } catch (err) {
     // Push é complementar — nunca deve quebrar o app, mas AGORA logamos o motivo.
-    logErr('falha ao inicializar o Push:', (err as Error)?.message ?? err, err);
+    const msg = (err as Error)?.message ?? String(err);
+    logErr('falha ao inicializar o Push:', msg, err);
+    if (/push service error|applicationServerKey|InvalidAccessError/i.test(msg)) {
+      logErr(
+        'DICA: erro do serviço de push geralmente = VAPID key errada. Confira que ' +
+          'VITE_FIREBASE_VAPID_KEY é a chave PÚBLICA de "Cloud Messaging → Certificados push da Web" ' +
+          'do MESMO projeto (' + (readConfig()?.config.projectId ?? '?') + ') e que todos os VITE_FIREBASE_* são desse projeto.',
+      );
+    }
   }
 }
 
