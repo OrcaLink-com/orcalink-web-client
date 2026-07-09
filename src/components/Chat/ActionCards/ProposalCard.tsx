@@ -92,9 +92,13 @@ export function ProposalCard({ payload, onAccept, onReject, onCompare, onViewDoc
         showViewDoc || showDecision ? (
         <>
           {showViewDoc ? (
-            <CardButton variant="secondary" icon={<LuFileText size={16} />} onPress={onViewDocument} disabled={busy}>
-              Ver orçamento completo
-            </CardButton>
+            <button
+              type="button"
+              onClick={onViewDocument}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-content2 px-4 text-sm font-semibold text-foreground transition-colors hover:bg-content1"
+            >
+              <LuFileText size={16} /> Ver orçamento completo
+            </button>
           ) : null}
           {showDecision ? (
             <>
