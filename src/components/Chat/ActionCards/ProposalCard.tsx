@@ -9,12 +9,13 @@ export interface ProposalCardProps {
   onAccept?: () => Promise<void>;
   onReject?: () => Promise<void>;
   onCompare?: () => void;
+  onViewDocument?: () => void;
   mine?: boolean;
 }
 
 const METHOD_LABEL: Record<string, string> = { PIX: 'PIX', CARD: 'Cartão', BOLETO: 'Boleto' };
 
-export function ProposalCard({ payload, onAccept, onReject, onCompare, mine }: ProposalCardProps) {
+export function ProposalCard({ payload, onAccept, onReject, onCompare, onViewDocument, mine }: ProposalCardProps) {
   const isEstimate = payload.kind === 'estimate';
   const pending = payload.status === 'pending';
   // Enquanto uma ação (aceitar/recusar) roda, travamos o card inteiro para
@@ -67,6 +68,9 @@ export function ProposalCard({ payload, onAccept, onReject, onCompare, mine }: P
   if (payload.notes)
     meta.push({ icon: <LuStickyNote size={15} />, label: 'Obs.', value: payload.notes });
 
+  const showViewDoc = payload.format === 'PRO' && !!onViewDocument;
+  const showDecision = pending && !mine;
+
   const badge =
     payload.status === 'accepted'
       ? { label: 'Aceita', tone: 'success' as const }
@@ -85,28 +89,37 @@ export function ProposalCard({ payload, onAccept, onReject, onCompare, mine }: P
       meta={meta}
       mine={mine}
       actions={
-        pending && !mine ? (
-          <>
-            <CardButton
-              accent={isEstimate ? 'blue' : 'green'}
-              icon={<LuCheck size={17} />}
-              onPress={accept}
-              disabled={busy}
-              successLabel="Aceita!"
-            >
-              {isEstimate ? 'Aceitar estimativa' : 'Aceitar e contratar'}
+        showViewDoc || showDecision ? (
+        <>
+          {showViewDoc ? (
+            <CardButton variant="secondary" icon={<LuFileText size={16} />} onPress={onViewDocument} disabled={busy}>
+              Ver orçamento completo
             </CardButton>
-            <div className={payload.compareCount ? 'grid grid-cols-2 gap-2' : ''}>
-              <CardButton variant="secondary" icon={<LuX size={16} />} onPress={reject} disabled={busy}>
-                Recusar
+          ) : null}
+          {showDecision ? (
+            <>
+              <CardButton
+                accent={isEstimate ? 'blue' : 'green'}
+                icon={<LuCheck size={17} />}
+                onPress={accept}
+                disabled={busy}
+                successLabel="Aceita!"
+              >
+                {isEstimate ? 'Aceitar estimativa' : 'Aceitar e contratar'}
               </CardButton>
-              {payload.compareCount ? (
-                <CardButton variant="secondary" icon={<LuLayers size={16} />} onPress={onCompare} disabled={busy}>
-                  Comparar ({payload.compareCount})
+              <div className={payload.compareCount ? 'grid grid-cols-2 gap-2' : ''}>
+                <CardButton variant="secondary" icon={<LuX size={16} />} onPress={reject} disabled={busy}>
+                  Recusar
                 </CardButton>
-              ) : null}
-            </div>
-          </>
+                {payload.compareCount ? (
+                  <CardButton variant="secondary" icon={<LuLayers size={16} />} onPress={onCompare} disabled={busy}>
+                    Comparar ({payload.compareCount})
+                  </CardButton>
+                ) : null}
+              </div>
+            </>
+          ) : null}
+        </>
         ) : undefined
       }
     />

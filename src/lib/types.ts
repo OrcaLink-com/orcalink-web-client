@@ -127,6 +127,26 @@ export type MessageType =
   | 'VISIT_RESCHEDULED'
   | 'SYSTEM';
 
+export type ProposalItemGroup = 'LABOR' | 'MATERIAL' | 'EQUIPMENT' | 'TRAVEL' | 'OTHER';
+
+export interface ProposalItem {
+  group: ProposalItemGroup;
+  description: string;
+  quantity: number;
+  unit?: string | null;
+  unitCents: number;
+  subtotalCents: number;
+}
+
+export interface ProposalTechnical {
+  areaText?: string | null;
+  quantityText?: string | null;
+  validityDays?: number | null;
+  executionConditions?: string | null;
+  technicalNotes?: string | null;
+  warrantiesText?: string | null;
+}
+
 export interface Proposal {
   id: string;
   providerId: string;
@@ -140,6 +160,9 @@ export interface Proposal {
   warrantyDays?: number | null;
   paymentMethods?: string[];
   requestsVisit?: boolean;
+  format?: 'SIMPLE' | 'PRO';
+  items?: ProposalItem[];
+  technical?: ProposalTechnical | null;
   status: ProposalStatus;
   createdAt: string;
 }

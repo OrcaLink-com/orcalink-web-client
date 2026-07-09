@@ -24,7 +24,8 @@ import {
 } from '../../lib/queries';
 import { usePeerTyping, usePresence, useQuoteRealtime, useTypingSignal } from '../../lib/realtime';
 import { ChatConversationView } from '../../components/Chat';
-import type { ChatActionHandlers, ChatMessage, ChatParticipant } from '../../components/Chat';
+import type { ChatActionHandlers, ChatMessage, ChatParticipant, ProposalPayload } from '../../components/Chat';
+import { ProposalDocument } from '../../components/ProposalDocument';
 import { APP_TZ } from '../../lib/format';
 import { messagesToChat, toServiceStatus } from './chatAdapter';
 import { computeNextStep } from './nextStep';
@@ -187,11 +188,14 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
     return list;
   }, [messagesQ.data, conversation, peer, user?.id, otherFinalsPending, awaitingVisit, isContracted, quoteStatus, pricingQ.data, reviewQ.data?.rating, reviewQ.data?.createdAt]);
 
+  const [docPayload, setDocPayload] = useState<ProposalPayload | null>(null);
+
   const handlers: ChatActionHandlers = {
     onSendMessage: async (t) => {
       await sendMessage.mutateAsync(t);
     },
     onTyping: notifyTyping,
+    onViewProposalDocument: (p) => setDocPayload(p),
     onAcceptProposal: async (id) => {
       await acceptProposal.mutateAsync(id);
     },
@@ -300,31 +304,36 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
     ) : null;
 
   return (
-    <ChatConversationView
-      peer={peer}
-      serviceStatus={toServiceStatus(quoteStatus)}
-      viewer={{ id: user?.id ?? 'me', role: 'client' }}
-      messages={messages}
-      handlers={handlers}
-      loading={messagesQ.isLoading}
-      peerTyping={peerTyping}
-      highlightMessageId={highlightMessageId}
-      headerBanner={nextStep ? <NextStepBanner step={nextStep} /> : undefined}
-      aboveComposer={
-        manageCard || aboveComposer ? (
-          <>
-            {manageCard}
-            {aboveComposer}
-          </>
-        ) : undefined
-      }
-      disabled={conversation?.status !== 'ACTIVE'}
-      autoFocusComposer
-      onBack={onBack}
-      onOpenMenu={(action) => {
-        if (action === 'details' && conversation) navigate(`/app/prestador/${conversation.counterpartId}`);
-      }}
-    />
+    <>
+      <ChatConversationView
+        peer={peer}
+        serviceStatus={toServiceStatus(quoteStatus)}
+        viewer={{ id: user?.id ?? 'me', role: 'client' }}
+        messages={messages}
+        handlers={handlers}
+        loading={messagesQ.isLoading}
+        peerTyping={peerTyping}
+        highlightMessageId={highlightMessageId}
+        headerBanner={nextStep ? <NextStepBanner step={nextStep} /> : undefined}
+        aboveComposer={
+          manageCard || aboveComposer ? (
+            <>
+              {manageCard}
+              {aboveComposer}
+            </>
+          ) : undefined
+        }
+        disabled={conversation?.status !== 'ACTIVE'}
+        autoFocusComposer
+        onBack={onBack}
+        onOpenMenu={(action) => {
+          if (action === 'details' && conversation) navigate(`/app/prestador/${conversation.counterpartId}`);
+        }}
+      />
+      {docPayload && (
+        <ProposalDocument open onClose={() => setDocPayload(null)} payload={docPayload} />
+      )}
+    </>
   );
 }
 

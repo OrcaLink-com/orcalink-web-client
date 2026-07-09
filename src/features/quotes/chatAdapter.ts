@@ -50,6 +50,8 @@ export function toProposalPayload(p: Proposal, compareCount?: number): ProposalP
   return {
     proposalId: p.id,
     kind: p.type === 'PRE' ? 'estimate' : 'final',
+    providerId: p.providerId,
+    createdAt: p.createdAt,
     amountCents: p.amountCents,
     amountMinCents: p.amountMinCents ?? undefined,
     amountMaxCents: p.amountMaxCents ?? undefined,
@@ -59,6 +61,9 @@ export function toProposalPayload(p: Proposal, compareCount?: number): ProposalP
     paymentMethods: p.paymentMethods,
     notes: p.notes ?? undefined,
     requestsVisit: p.requestsVisit,
+    format: p.format,
+    items: p.items,
+    technical: p.technical,
     status: p.status === 'PENDING' ? 'pending' : p.status === 'REJECTED' ? 'rejected' : 'accepted',
     compareCount,
   };

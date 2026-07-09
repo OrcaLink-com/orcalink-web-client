@@ -139,6 +139,7 @@ function MessageRenderer({
           onAccept={h.onAcceptProposal ? () => h.onAcceptProposal!(p.proposalId) : undefined}
           onReject={h.onRejectProposal ? () => h.onRejectProposal!(p.proposalId) : undefined}
           onCompare={h.onCompareProposals}
+          onViewDocument={h.onViewProposalDocument ? () => h.onViewProposalDocument!(p) : undefined}
         />
       );
     }

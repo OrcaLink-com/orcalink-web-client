@@ -175,10 +175,31 @@ export interface ScheduleChangePayload {
 export type ProposalKind = 'estimate' | 'final';
 export type ProposalCardStatus = 'pending' | 'accepted' | 'rejected';
 
+/** Orçamento profissional: item de linha e informações técnicas. */
+export type ProposalItemGroup = 'LABOR' | 'MATERIAL' | 'EQUIPMENT' | 'TRAVEL' | 'OTHER';
+export interface ProposalItem {
+  group: ProposalItemGroup;
+  description: string;
+  quantity: number;
+  unit?: string | null;
+  unitCents: number;
+  subtotalCents: number;
+}
+export interface ProposalTechnical {
+  areaText?: string | null;
+  quantityText?: string | null;
+  validityDays?: number | null;
+  executionConditions?: string | null;
+  technicalNotes?: string | null;
+  warrantiesText?: string | null;
+}
+
 export interface ProposalPayload {
   proposalId: string;
   kind: ProposalKind;
+  providerId?: string;
   providerName?: string;
+  createdAt?: string;
   /** Valor mostrado ao cliente (ou média, na estimativa em faixa). */
   amountCents: number;
   amountMinCents?: number;
@@ -191,6 +212,10 @@ export interface ProposalPayload {
   status: ProposalCardStatus;
   /** Estimativa que pede visita técnica antes da proposta final. */
   requestsVisit?: boolean;
+  /** Modo do orçamento + detalhamento profissional. */
+  format?: 'SIMPLE' | 'PRO';
+  items?: ProposalItem[];
+  technical?: ProposalTechnical | null;
   /** Nº de outras propostas finais pendentes (mostra "Comparar (N)"). */
   compareCount?: number;
 }
@@ -239,6 +264,8 @@ export interface ChatActionHandlers {
   onAcceptProposal?: (proposalId: string) => Promise<void>;
   onRejectProposal?: (proposalId: string) => Promise<void>;
   onCompareProposals?: () => void;
+  /** Abre o documento completo do orçamento (profissional). */
+  onViewProposalDocument?: (payload: ProposalPayload) => void;
 
   onAcceptVisit?: (visitId: string) => Promise<void>;
   onDeclineVisit?: (visitId: string) => Promise<void>;

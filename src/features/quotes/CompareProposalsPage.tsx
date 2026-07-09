@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { LuFileText } from 'react-icons/lu';
 import {
   useAcceptProposal,
   useQuoteConversations,
@@ -8,6 +9,9 @@ import {
 import { formatBRL } from '../../lib/format';
 import { useQuoteRealtime } from '../../lib/realtime';
 import type { ConversationSummary, Proposal } from '../../lib/types';
+import { ProposalDocument } from '../../components/ProposalDocument';
+import type { ProposalPayload } from '../../components/Chat';
+import { toProposalPayload } from './chatAdapter';
 
 /** Linha de uma característica para comparar entre as propostas (doc 07 C13). */
 function Row({
@@ -50,6 +54,7 @@ export function CompareProposalsPage() {
   const convsQ = useQuoteConversations(quoteId);
   const accept = useAcceptProposal(quoteId);
   const reject = useRejectProposal(quoteId);
+  const [docPayload, setDocPayload] = useState<ProposalPayload | null>(null);
 
   // Apenas FINAIS PENDING ativas (máx. 3, alinhado ao limite de visitas — doc 03 §3.6).
   const finals: FinalCard[] = useMemo(() => {
@@ -98,6 +103,7 @@ export function CompareProposalsPage() {
 
   return (
     <div className="space-y-3">
+      {docPayload && <ProposalDocument open onClose={() => setDocPayload(null)} payload={docPayload} />}
       <p className="text-xs text-text-muted">
         Compare lado a lado. Aceitar contrata o profissional e bloqueia os demais.
       </p>
@@ -136,6 +142,18 @@ export function CompareProposalsPage() {
               )}
             />
             <Row
+              label="Validade"
+              values={finals.map((f) =>
+                f.proposal.technical?.validityDays != null ? `${f.proposal.technical.validityDays} dia(s)` : null,
+              )}
+            />
+            <Row
+              label="Itens"
+              values={finals.map((f) =>
+                f.proposal.format === 'PRO' && f.proposal.items ? `${f.proposal.items.length} item(ns)` : 'Valor único',
+              )}
+            />
+            <Row
               label="Pagamento"
               values={finals.map((f) =>
                 f.proposal.paymentMethods && f.proposal.paymentMethods.length
@@ -164,10 +182,25 @@ export function CompareProposalsPage() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {finals.map((f) => (
           <div key={f.conv.id} className="rounded-lg border border-border p-3">
-            <p className="mb-2 text-sm font-medium">{f.conv.counterpartName}</p>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="truncate text-sm font-medium">{f.conv.counterpartName}</p>
+              {f.proposal.format === 'PRO' && (
+                <span className="shrink-0 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                  Detalhado
+                </span>
+              )}
+            </div>
             <p className="mb-3 text-lg font-bold text-brand">
               {formatBRL(f.proposal.amountCents)}
             </p>
+            {f.proposal.format === 'PRO' && (
+              <button
+                onClick={() => setDocPayload(toProposalPayload(f.proposal))}
+                className="mb-2 flex w-full items-center justify-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm hover:bg-content2"
+              >
+                <LuFileText size={15} /> Ver orçamento completo
+              </button>
+            )}
             <div className="flex gap-2">
               <button
                 onClick={() => void onAccept(f.proposal.id)}
