@@ -237,10 +237,12 @@ export function ProposalDocument({
 
 function ItemRow({ item }: { item: ProposalItem }) {
   const hasQty = item.quantity != null && item.unitCents != null;
+  // Descrição opcional: se vazia, usa o rótulo do grupo (ex.: "Mão de obra").
+  const label = item.description?.trim() || GROUP_META[item.group]?.label || 'Item';
   return (
     <div className="flex items-start justify-between gap-3 px-4 py-2.5 text-sm">
       <div className="min-w-0">
-        <p className="truncate">{item.description}</p>
+        <p className="truncate">{label}</p>
         {hasQty && (
           <p className="text-xs text-text-muted">
             {item.quantity}
