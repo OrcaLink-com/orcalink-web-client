@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { RadioGroup, Radio } from '@heroui/react';
@@ -8,6 +8,14 @@ import { Button, Card, Input, PageHeader, Select, Textarea } from '../../compone
 import { IconClose, IconLocation, IconPlus, IconWarning } from '../../components/icons';
 
 const MAX_IMAGES = 10;
+
+type QuoteFormErrors = {
+  categoryId?: string;
+  title?: string;
+  description?: string;
+  location?: string;
+  photos?: string;
+};
 
 export function NewQuotePage() {
   const navigate = useNavigate();
@@ -22,7 +30,10 @@ export function NewQuotePage() {
   const [zipCode, setZipCode] = useState('');
   const [budgetMax, setBudgetMax] = useState('');
   const [budgetMode, setBudgetMode] = useState<'remote' | 'visit'>('remote');
-  const [errors, setErrors] = useState<{ categoryId?: string; title?: string; description?: string; photos?: string }>({});
+  const [errors, setErrors] = useState<QuoteFormErrors>({});
+  // Depois da 1ª tentativa de envio, o formulário revalida ao vivo (o erro some
+  // assim que o campo fica válido, em vez de só no próximo submit).
+  const [submitted, setSubmitted] = useState(false);
 
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -81,16 +92,34 @@ export function NewQuotePage() {
     setImageUrls((prev) => prev.filter((u) => u !== url));
   }
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const next: typeof errors = {};
+  // Regras de validação num único lugar (usadas no submit e na revalidação ao vivo).
+  const validate = useCallback((): QuoteFormErrors => {
+    const next: QuoteFormErrors = {};
     if (!categoryId) next.categoryId = 'Escolha uma categoria.';
     if (title.trim().length < 3) next.title = 'Dê um título ao projeto (mín. 3 caracteres).';
     if (description.trim().length < 10) next.description = 'Descreva o serviço com pelo menos 10 caracteres.';
+    // Localização obrigatória: CEP (geocodificado no servidor) OU GPS — para os
+    // profissionais da região encontrarem o pedido pelo raio de atendimento.
+    const cepDigits = zipCode.replace(/\D/g, '');
+    if (!coords && cepDigits.length !== 8) {
+      next.location = 'Informe o CEP ou use sua localização para os profissionais da sua região encontrarem seu pedido.';
+    }
     // Sem visita técnica, o profissional orça só pelas fotos/descrição → foto obrigatória.
     if (budgetMode === 'remote' && imageUrls.length === 0) {
       next.photos = 'Sem visita técnica, envie ao menos uma foto para o profissional conseguir orçar.';
     }
+    return next;
+  }, [categoryId, title, description, zipCode, coords, budgetMode, imageUrls]);
+
+  // Após a 1ª tentativa, revalida ao vivo: o erro some quando o campo fica válido.
+  useEffect(() => {
+    if (submitted) setErrors(validate());
+  }, [submitted, validate]);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitted(true);
+    const next = validate();
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
@@ -160,11 +189,21 @@ export function NewQuotePage() {
         {/* Local do serviço */}
         <section className="space-y-3">
           <p className="px-1 text-xs font-semibold uppercase tracking-wide text-text-muted">
-            Local do serviço <span className="font-normal normal-case">(opcional)</span>
+            Local do serviço
           </p>
           <Card className="space-y-4 p-4">
-            <Input label="CEP" placeholder="01001-000" value={zipCode} onChange={setZipCode} />
+            <Input
+              label="CEP"
+              placeholder="01001-000"
+              value={zipCode}
+              onChange={setZipCode}
+              isRequired
+              error={errors.location}
+            />
             <div>
+              <p className="mb-2 text-xs text-text-muted">
+                Informe o CEP <strong>ou</strong> use sua localização — assim os profissionais da sua região encontram o pedido.
+              </p>
               <Button
                 variant={coords ? 'success' : 'secondary'}
                 size="sm"

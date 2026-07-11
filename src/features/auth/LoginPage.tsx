@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { brand } from '@orcalink/design-tokens/brand.config';
 import { useAuth } from '../../auth/AuthContext';
 import type { OtpChannel } from '../../lib/types';
@@ -14,6 +14,11 @@ export function LoginPage() {
   const [registered, setRegistered] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Limpa o erro assim que o usuário edita os campos.
+  useEffect(() => {
+    setError(null);
+  }, [destination, code, name]);
 
   async function onRequest(e: React.FormEvent) {
     e.preventDefault();

@@ -155,6 +155,11 @@ function PasswordSection({ hasPassword, hasEmail }: { hasPassword: boolean; hasE
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Limpa o erro assim que o usuário edita os campos de senha.
+  useEffect(() => {
+    setError(null);
+  }, [current, next, code]);
+
   async function sendOtp() {
     setError(null);
     try {

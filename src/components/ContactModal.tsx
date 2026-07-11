@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { LuCircleCheck, LuLoaderCircle, LuX } from 'react-icons/lu';
 import { useSendContact } from '../lib/queries';
@@ -31,6 +31,12 @@ export function ContactModal({ open, onClose, authenticated }: ContactModalProps
   const [message, setMessage] = useState('');
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Limpa o erro de validação assim que o usuário edita qualquer campo
+  // (evita a mensagem "presa" após corrigir o valor).
+  useEffect(() => {
+    setError(null);
+  }, [name, email, subject, category, message]);
 
   function reset() {
     setName('');

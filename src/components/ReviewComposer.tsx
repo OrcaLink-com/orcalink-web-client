@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { LuLoaderCircle, LuStar } from 'react-icons/lu';
 
@@ -16,6 +16,11 @@ export function ReviewComposer({ onSubmit }: ReviewComposerProps) {
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Limpa o erro assim que o usuário interage (escolhe estrela / edita comentário).
+  useEffect(() => {
+    setError(null);
+  }, [rating, comment]);
 
   async function submit() {
     setError(null);
