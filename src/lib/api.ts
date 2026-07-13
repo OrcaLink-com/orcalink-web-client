@@ -303,10 +303,11 @@ export const api = {
     return request<void>('/notifications/read-all', { method: 'POST' });
   },
 
-  uploadImage(file: File) {
+  uploadImage(file: File, kind?: string) {
     const form = new FormData();
     form.append('file', file);
-    return request<UploadResult>('/uploads', { method: 'POST', body: form });
+    const qs = kind ? `?kind=${encodeURIComponent(kind)}` : '';
+    return request<UploadResult>(`/uploads${qs}`, { method: 'POST', body: form });
   },
   /** Quota de upload restante (janela rolante de 1h). */
   getUploadQuota() {

@@ -77,7 +77,7 @@ export function NewQuotePage() {
     try {
       for (const file of files) {
         if (imageUrls.length >= MAX_IMAGES) break;
-        const result = await api.uploadImage(file);
+        const result = await api.uploadImage(file, 'quote');
         setImageUrls((prev) => [...prev, result.url]);
         await qc.invalidateQueries({ queryKey: queryKeys.uploadQuota });
       }

@@ -119,7 +119,7 @@ export function AvatarUploader({ value, name, onChange, size = 88 }: AvatarUploa
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/webp', 0.85));
       if (!blob) throw new Error('Falha ao gerar a imagem.');
       const file = new File([blob], 'avatar.webp', { type: 'image/webp' });
-      const res = await api.uploadImage(file);
+      const res = await api.uploadImage(file, 'avatar');
       onChange(res.url);
       close();
     } catch (err) {
