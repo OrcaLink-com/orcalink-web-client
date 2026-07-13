@@ -1,35 +1,55 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useProfile } from '../lib/queries';
+import { usePendingLegal } from '../lib/queries';
+import { LEGAL_ROUTES, type LegalDocKey } from '../lib/legalContent';
 import { api } from '../lib/api';
 import { Button } from './ui';
 
 /**
- * Portão de aceite dos Termos + Privacidade. Renderizado quando autenticado; se o
- * usuário ainda não aceitou a versão vigente, bloqueia o app com um modal até o
- * aceite (cobre novos usuários E re-aceite quando a versão dos termos muda).
- * O aceite é registrado no backend com versão + data + IP (auditoria).
+ * Portão de aceite dos documentos legais. Renderizado quando autenticado; se
+ * houver documentos vigentes que exigem aceite e ainda não aceitos (vindos do
+ * CMS via /legal/pending), bloqueia o app até o aceite (cobre novos usuários E
+ * re-aceite quando o admin publica uma nova versão). Registra no backend
+ * (documento + versão + data + IP).
  */
 export function TermsGate() {
-  const profile = useProfile();
+  const pending = usePendingLegal();
   const qc = useQueryClient();
   const [checked, setChecked] = useState(false);
   const accept = useMutation({
-    mutationFn: () => api.acceptTerms(),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['profile'] }),
+    mutationFn: () => api.acceptLegal(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['legal-pending'] }),
   });
 
-  // Só bloqueia quando temos certeza de que NÃO aceitou (evita flicker no carregamento).
-  if (!profile.data || profile.data.termsAccepted !== false) return null;
+  const docs = pending.data ?? [];
+  // Só bloqueia quando temos certeza de que há pendências (evita flicker no carregamento).
+  if (!pending.data || docs.length === 0) return null;
 
   return (
     <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/70 p-4 backdrop-blur-sm sm:items-center">
       <div className="w-full max-w-md rounded-large border border-border bg-content1 p-5 shadow-pop">
         <h2 className="text-lg font-bold">Antes de continuar</h2>
         <p className="mt-1 text-sm text-text-muted">
-          Para usar a OrcaLink, você precisa aceitar os Termos de Uso e a Política de Privacidade.
+          Atualizamos nossos documentos. Para continuar usando a OrcaLink, revise e aceite:
         </p>
+
+        <ul className="mt-3 space-y-1 text-sm">
+          {docs.map((d) => {
+            const route = LEGAL_ROUTES[d.slug as LegalDocKey];
+            return (
+              <li key={d.id}>
+                {route ? (
+                  <Link to={route} target="_blank" className="text-primary underline">
+                    {d.title}
+                  </Link>
+                ) : (
+                  <span>{d.title}</span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
 
         <label className="mt-4 flex items-start gap-2 text-sm">
           <input
@@ -38,17 +58,7 @@ export function TermsGate() {
             onChange={(e) => setChecked(e.target.checked)}
             className="mt-0.5 h-4 w-4 shrink-0"
           />
-          <span>
-            Li e aceito os{' '}
-            <Link to="/termos" target="_blank" className="text-primary underline">
-              Termos de Uso
-            </Link>{' '}
-            e a{' '}
-            <Link to="/privacidade" target="_blank" className="text-primary underline">
-              Política de Privacidade
-            </Link>
-            .
-          </span>
+          <span>Li e aceito os documentos acima.</span>
         </label>
 
         <Button full className="mt-4" disabled={!checked} loading={accept.isPending} onClick={() => accept.mutate()}>

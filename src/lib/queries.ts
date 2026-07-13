@@ -273,6 +273,17 @@ export function useMarkAllNotificationsRead() {
   });
 }
 
+// ───────── Documentos legais (CMS) ─────────
+export function useLegalDoc(slug: string) {
+  return useQuery({ queryKey: ['legal', slug] as const, queryFn: () => api.getLegalDoc(slug) });
+}
+export function useLegalDocsList() {
+  return useQuery({ queryKey: ['legal-list'] as const, queryFn: api.listLegalDocs });
+}
+export function usePendingLegal() {
+  return useQuery({ queryKey: ['legal-pending'] as const, queryFn: api.getPendingLegal });
+}
+
 // ───────── Perfil ─────────
 export function useProfile() {
   return useQuery({ queryKey: ['profile'] as const, queryFn: api.getProfile });

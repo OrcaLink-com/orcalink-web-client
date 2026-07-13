@@ -100,6 +100,24 @@ export interface MeProfile {
   termsAccepted: boolean;
 }
 
+/** Documento legal vigente (vindo do CMS no banco). */
+export interface LegalDoc {
+  slug: string;
+  title: string;
+  version: string;
+  summary: string | null;
+  contentHtml: string;
+  updatedAt: string;
+}
+
+/** Documento pendente de aceite pelo usuário. */
+export interface PendingLegal {
+  id: string;
+  slug: string;
+  title: string;
+  version: string;
+}
+
 /** Payload de atualização de dados pessoais + endereço (PATCH /auth/me). */
 export interface UpdateMeInput {
   name?: string;
