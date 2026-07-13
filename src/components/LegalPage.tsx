@@ -42,6 +42,12 @@ export function LegalPage({ doc }: { doc: LegalDocKey }) {
         <Link to="/conduta" className="text-primary hover:underline">
           Código de Conduta
         </Link>
+        <Link to="/reembolso" className="text-primary hover:underline">
+          Cancelamento e Reembolso
+        </Link>
+        <Link to="/legal" className="text-text-muted hover:underline">
+          Todos os documentos
+        </Link>
       </div>
     </div>
   );
