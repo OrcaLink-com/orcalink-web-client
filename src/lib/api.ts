@@ -164,6 +164,9 @@ export const api = {
   setPassword(input: { newPassword: string; code?: string; currentPassword?: string }) {
     return request<{ ok: boolean }>('/auth/password', { ...jsonBody(input), method: 'PATCH' });
   },
+  acceptTerms() {
+    return request<{ accepted: boolean; version: string }>('/auth/terms/accept', { method: 'POST' });
+  },
   async logout() {
     const refreshToken = getRefresh();
     try {

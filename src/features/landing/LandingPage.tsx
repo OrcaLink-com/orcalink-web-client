@@ -321,7 +321,7 @@ function Footer() {
         <FooterCol title="Plataforma" items={[['Solicitar orçamento', '/login'], ['Sou profissional', links.providerUrl], ['Perguntas frequentes', '#faq']]} />
         <FooterCol
           title="Legal"
-          items={[['Política de privacidade', '#'], ['Termos de uso', '#']]}
+          items={[['Política de privacidade', '/privacidade'], ['Termos de uso', '/termos']]}
           onContact={() => setContactOpen(true)}
         />
         <FooterCol title="Social" items={[['Instagram', '#'], ['LinkedIn', '#'], ['Facebook', '#']]} />
