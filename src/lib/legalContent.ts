@@ -136,7 +136,66 @@ export const PRIVACY_DOC: LegalDoc = {
   ],
 };
 
-export const LEGAL_DOCS: Record<'terms' | 'privacy', LegalDoc> = {
+export const CONDUCT_DOC: LegalDoc = {
+  title: 'Código de Conduta',
+  updatedAt: '2026-07-13',
+  intro: `Este Código estabelece as regras de convivência e uso da plataforma ${COMPANY} para clientes e profissionais. O objetivo é manter um ambiente seguro, honesto e respeitoso para todos.`,
+  sections: [
+    {
+      title: '1. Respeito e comunicação',
+      paragraphs: [
+        'Trate todos com cordialidade e profissionalismo. Não são tolerados assédio, ameaças, discriminação (por raça, gênero, religião, orientação, deficiência ou qualquer outra), discurso de ódio ou linguagem ofensiva no chat ou em qualquer interação.',
+      ],
+    },
+    {
+      title: '2. Informações verdadeiras',
+      paragraphs: [
+        'Forneça dados reais e atualizados (identidade, contato, endereço, descrição do serviço). Fotos e descrições devem representar fielmente o serviço ou a necessidade. Informações falsas podem levar à suspensão.',
+      ],
+    },
+    {
+      title: '3. Mantenha a negociação na plataforma',
+      paragraphs: [
+        `A negociação, o agendamento, o pagamento e a comunicação devem ocorrer dentro da ${COMPANY}. Combinar o serviço "por fora" para evitar a comissão (desintermediação) desprotege ambas as partes — sem custódia do pagamento, sem histórico e sem mediação — e viola este Código.`,
+      ],
+    },
+    {
+      title: '4. Condutas proibidas',
+      paragraphs: [
+        'É proibido: publicar conteúdo ilícito, fraudulento ou enganoso; usar a plataforma para fins diferentes da contratação de serviços; tentar burlar taxas ou o sistema de pagamento; criar contas falsas ou múltiplas para manipular avaliações; e compartilhar dados de terceiros sem autorização.',
+      ],
+    },
+    {
+      title: '5. Segurança e privacidade',
+      paragraphs: [
+        'Não solicite nem compartilhe senhas, códigos de acesso ou dados sensíveis fora dos fluxos oficiais. Use os dados da outra parte apenas para viabilizar o serviço contratado.',
+      ],
+    },
+    {
+      title: '6. Avaliações honestas',
+      paragraphs: [
+        'As avaliações devem refletir a experiência real. É proibido comprar, trocar, coagir ou fraudar avaliações.',
+      ],
+    },
+    {
+      title: '7. Denúncias e mediação',
+      paragraphs: [
+        `Situações de descumprimento podem ser reportadas pelo canal de contato. A ${COMPANY} pode mediar conflitos e, quando necessário, reter ou devolver valores em custódia conforme as políticas aplicáveis.`,
+      ],
+    },
+    {
+      title: '8. Consequências',
+      paragraphs: [
+        'O descumprimento deste Código pode resultar em advertência, suspensão temporária ou encerramento definitivo da conta, sem prejuízo das medidas legais cabíveis.',
+      ],
+    },
+  ],
+};
+
+export const LEGAL_DOCS: Record<'terms' | 'privacy' | 'conduct', LegalDoc> = {
   terms: TERMS_DOC,
   privacy: PRIVACY_DOC,
+  conduct: CONDUCT_DOC,
 };
+
+export type LegalDocKey = keyof typeof LEGAL_DOCS;

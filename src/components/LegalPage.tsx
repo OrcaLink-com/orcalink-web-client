@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { LEGAL_DOCS } from '../lib/legalContent';
+import { LEGAL_DOCS, type LegalDocKey } from '../lib/legalContent';
 import { IconBack } from './icons';
 
-/** Página pública de documento legal (Termos / Privacidade) — minuta provisória. */
-export function LegalPage({ doc }: { doc: 'terms' | 'privacy' }) {
+/** Página pública de documento legal (Termos / Privacidade / Conduta) — minuta provisória. */
+export function LegalPage({ doc }: { doc: LegalDocKey }) {
   const d = LEGAL_DOCS[doc];
   return (
     <div className="mx-auto min-h-dvh max-w-2xl px-5 py-8">
@@ -32,12 +32,15 @@ export function LegalPage({ doc }: { doc: 'terms' | 'privacy' }) {
         ))}
       </div>
 
-      <div className="mt-8 flex gap-4 border-t border-border pt-5 text-sm">
+      <div className="mt-8 flex flex-wrap gap-4 border-t border-border pt-5 text-sm">
         <Link to="/termos" className="text-primary hover:underline">
           Termos de Uso
         </Link>
         <Link to="/privacidade" className="text-primary hover:underline">
           Política de Privacidade
+        </Link>
+        <Link to="/conduta" className="text-primary hover:underline">
+          Código de Conduta
         </Link>
       </div>
     </div>

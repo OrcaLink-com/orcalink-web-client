@@ -38,6 +38,7 @@ export function App() {
         {/* Documentos legais (públicos). */}
         <Route path="/termos" element={<LegalPage doc="terms" />} />
         <Route path="/privacidade" element={<LegalPage doc="privacy" />} />
+        <Route path="/conduta" element={<LegalPage doc="conduct" />} />
         {/* Compat: quem tinha "/site" salvo cai na landing. */}
         <Route path="/site" element={<Navigate to="/" replace />} />
 
