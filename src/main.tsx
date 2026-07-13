@@ -6,6 +6,7 @@ import { HeroUIProvider } from '@heroui/react';
 import { AuthProvider } from './auth/AuthContext';
 import { App } from './App';
 import { PwaInstall } from './components/PwaInstall';
+import { ConsentBanner } from './components/ConsentBanner';
 import './index.css';
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <div className="dark min-h-dvh bg-background text-foreground">
               <App />
               <PwaInstall />
+              <ConsentBanner />
             </div>
           </HeroUIWithRouter>
         </BrowserRouter>

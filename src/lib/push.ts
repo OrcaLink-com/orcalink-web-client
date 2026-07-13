@@ -18,6 +18,7 @@
  * Logs com prefixo `[push]` para diagnóstico ponta a ponta.
  */
 import { api } from './api';
+import { notificationsDenied } from './consent';
 
 const FIREBASE_VERSION = '10.12.2';
 const SW_SCOPE = '/firebase-cloud-messaging-push-scope';
@@ -136,6 +137,12 @@ export async function initPush(): Promise<void> {
   try {
     const cfg = readConfig();
     if (!cfg) return; // não configurado → no-op
+
+    // Respeita o consentimento (LGPD): se o usuário recusou notificações, não registra.
+    if (notificationsDenied()) {
+      log('push desativado por consentimento do usuário (apenas essenciais).');
+      return;
+    }
 
     if (!('serviceWorker' in navigator) || !('Notification' in window) || !('PushManager' in window)) {
       log('desativado — navegador sem suporte a serviceWorker/Notification/PushManager.');
