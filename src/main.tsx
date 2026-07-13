@@ -10,6 +10,16 @@ import './index.css';
 
 const queryClient = new QueryClient();
 
+// Monitoramento de erros (opcional): só carrega o Sentry se VITE_SENTRY_DSN
+// estiver definido no build — senão nada é baixado (fica num chunk à parte,
+// inerte). Não custa nada até você criar um projeto grátis e definir a DSN.
+const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
+if (sentryDsn) {
+  void import('@sentry/react').then((Sentry) => {
+    Sentry.init({ dsn: sentryDsn, environment: import.meta.env.MODE, tracesSampleRate: 0 });
+  });
+}
+
 /**
  * Após um novo deploy, os chunks com hash antigo somem do servidor; a Vercel
  * responde `index.html` (text/html) no lugar do .js → o import dinâmico falha e
