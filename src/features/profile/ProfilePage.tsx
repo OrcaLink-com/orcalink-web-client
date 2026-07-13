@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
-import { LuArrowLeft, LuLock, LuMapPin, LuUser } from 'react-icons/lu';
+import { LuArrowLeft, LuLock, LuMapPin, LuTrash2, LuUser } from 'react-icons/lu';
 import { useNavigate } from 'react-router-dom';
 import { useProfile, useRequestPasswordOtp, useSetPassword, useUpdateMe } from '../../lib/queries';
+import { useAuth } from '../../auth/AuthContext';
+import { api } from '../../lib/api';
 import { AvatarUploader } from '../../components/AvatarUploader';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Button, Card, Input, Spinner } from '../../components/ui';
 
 /** Tela "Meu Perfil": dados pessoais, endereço e senha. */
@@ -32,7 +35,49 @@ export function ProfilePage() {
       <PersonalSection profile={p} />
       <AddressSection profile={p} />
       <PasswordSection hasPassword={p.hasPassword} hasEmail={Boolean(p.email)} />
+      <DangerZoneSection />
     </div>
+  );
+}
+
+/* ───────── Zona de risco: excluir conta (LGPD) ───────── */
+function DangerZoneSection() {
+  const { logout } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function remove() {
+    setError(null);
+    try {
+      await api.deleteAccount();
+      await logout(); // encerra a sessão e volta pra landing
+    } catch (e) {
+      setError((e as Error).message);
+      throw e; // mantém o modal aberto em caso de erro
+    }
+  }
+
+  return (
+    <Card className="space-y-3 border-danger/30 p-5">
+      <SectionTitle icon={<LuTrash2 size={16} />} title="Excluir minha conta" />
+      <p className="text-sm text-text-muted">
+        Remove seus dados pessoais e encerra o acesso. Registros financeiros exigidos por lei são
+        mantidos de forma anonimizada. Esta ação não pode ser desfeita.
+      </p>
+      {error && <p className="text-sm text-danger">{error}</p>}
+      <Button variant="secondary" className="text-danger" onClick={() => setOpen(true)}>
+        Excluir minha conta
+      </Button>
+      <ConfirmDialog
+        open={open}
+        danger
+        title="Excluir sua conta?"
+        description="Seus dados pessoais serão removidos e você perderá o acesso. Não é possível desfazer."
+        confirmLabel="Excluir conta"
+        onConfirm={remove}
+        onClose={() => setOpen(false)}
+      />
+    </Card>
   );
 }
 

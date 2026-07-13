@@ -167,6 +167,9 @@ export const api = {
   acceptTerms() {
     return request<{ accepted: boolean; version: string }>('/auth/terms/accept', { method: 'POST' });
   },
+  deleteAccount() {
+    return request<{ ok: boolean }>('/auth/me', { method: 'DELETE' });
+  },
   async logout() {
     const refreshToken = getRefresh();
     try {
