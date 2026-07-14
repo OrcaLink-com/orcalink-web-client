@@ -85,11 +85,26 @@ export function QuoteDetailPage() {
         <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <Field label="Categoria" value={quote.category.name} />
           <Field label="Modo" value={quote.requiresVisit ? 'Com visita técnica' : 'À distância'} />
-          <Field label="Endereço / CEP" value={quote.zipCode ?? '—'} />
           {quote.budgetMaxCents != null && (
             <Field label="Orçamento máximo" value={formatBRL(quote.budgetMaxCents)} />
           )}
           <Field label="Criado em" value={formatDateTime(quote.createdAt)} />
+          <div className="col-span-2">
+            <Field
+              label="Endereço do serviço"
+              value={
+                [
+                  [quote.street, quote.number].filter(Boolean).join(', '),
+                  quote.complement,
+                  quote.neighborhood,
+                  [quote.city, quote.state].filter(Boolean).join('/'),
+                  quote.zipCode ? `CEP ${quote.zipCode}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ') || '—'
+              }
+            />
+          </div>
         </dl>
       </Card>
 

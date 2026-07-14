@@ -3,13 +3,16 @@ import { LuArrowLeft, LuLock, LuMapPin, LuTrash2, LuUser } from 'react-icons/lu'
 import { useNavigate } from 'react-router-dom';
 import { useProfile, useRequestPasswordOtp, useSetPassword, useUpdateMe } from '../../lib/queries';
 import { useAuth } from '../../auth/AuthContext';
-import { useCep } from '../../lib/useCep';
 import { api } from '../../lib/api';
 import { AvatarUploader } from '../../components/AvatarUploader';
+import { CepField } from '../../components/CepField';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Button, Card, Input, Spinner } from '../../components/ui';
 
-/** Tela "Meu Perfil": dados pessoais, endereço e senha. */
+/**
+ * "Meu Perfil": um único formulário (dados pessoais + endereço) com UM salvar.
+ * Senha e exclusão de conta são ações separadas (fluxos próprios), abaixo.
+ */
 export function ProfilePage() {
   const navigate = useNavigate();
   const profileQ = useProfile();
@@ -33,117 +36,20 @@ export function ProfilePage() {
         <h1 className="text-xl font-bold">Meu perfil</h1>
       </div>
 
-      <PersonalSection profile={p} />
-      <AddressSection profile={p} />
+      <ProfileForm profile={p} />
       <PasswordSection hasPassword={p.hasPassword} hasEmail={Boolean(p.email)} />
       <DangerZoneSection />
     </div>
   );
 }
 
-/* ───────── Zona de risco: excluir conta (LGPD) ───────── */
-function DangerZoneSection() {
-  const { logout } = useAuth();
-  const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function remove() {
-    setError(null);
-    try {
-      await api.deleteAccount();
-      await logout(); // encerra a sessão e volta pra landing
-    } catch (e) {
-      setError((e as Error).message);
-      throw e; // mantém o modal aberto em caso de erro
-    }
-  }
-
-  return (
-    <Card className="space-y-3 border-danger/30 p-5">
-      <SectionTitle icon={<LuTrash2 size={16} />} title="Excluir minha conta" />
-      <p className="text-sm text-text-muted">
-        Remove seus dados pessoais e encerra o acesso. Registros financeiros exigidos por lei são
-        mantidos de forma anonimizada. Esta ação não pode ser desfeita.
-      </p>
-      {error && <p className="text-sm text-danger">{error}</p>}
-      <Button variant="secondary" className="text-danger" onClick={() => setOpen(true)}>
-        Excluir minha conta
-      </Button>
-      <ConfirmDialog
-        open={open}
-        danger
-        title="Excluir sua conta?"
-        description="Seus dados pessoais serão removidos e você perderá o acesso. Não é possível desfazer."
-        confirmLabel="Excluir conta"
-        onConfirm={remove}
-        onClose={() => setOpen(false)}
-      />
-    </Card>
-  );
-}
-
-/* ───────── Dados pessoais ───────── */
-function PersonalSection({ profile }: { profile: NonNullable<ReturnType<typeof useProfile>['data']> }) {
+/* ───────── Formulário único: dados pessoais + endereço (um único salvar) ───────── */
+function ProfileForm({ profile }: { profile: NonNullable<ReturnType<typeof useProfile>['data']> }) {
   const update = useUpdateMe();
-  const [name, setName] = useState(profile.name);
-  const [phone, setPhone] = useState(profile.phone ?? '');
-  const [bio, setBio] = useState(profile.bio ?? '');
-  const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl ?? '');
-  const [ok, setOk] = useState(false);
-
-  useEffect(() => {
-    if (!ok) return;
-    const t = setTimeout(() => setOk(false), 2500);
-    return () => clearTimeout(t);
-  }, [ok]);
-
-  async function saveAvatar(url: string) {
-    setAvatarUrl(url);
-    await update.mutateAsync({ avatarUrl: url });
-    setOk(true);
-  }
-
-  async function save() {
-    await update.mutateAsync({ name: name.trim(), phone: phone.trim() || undefined, bio: bio.trim() || undefined });
-    setOk(true);
-  }
-
-  return (
-    <Card className="space-y-4 p-5">
-      <SectionTitle icon={<LuUser size={16} />} title="Informações pessoais" />
-      <div className="flex items-center gap-4">
-        <AvatarUploader value={avatarUrl} name={name} onChange={(u) => void saveAvatar(u)} />
-        <div className="text-sm text-text-muted">
-          <p className="font-medium text-foreground">Foto de perfil</p>
-          <p>Toque na foto para trocar, recortar e enviar.</p>
-        </div>
-      </div>
-
-      <Input label="Nome" value={name} onChange={setName} />
-      <Input label="Telefone" value={phone} onChange={setPhone} placeholder="(11) 99999-8888" />
-      <div>
-        <p className="mb-1 text-sm text-text-muted">E-mail</p>
-        <div className="rounded-medium border border-border bg-content2/50 px-3 py-2.5 text-sm text-text-muted">
-          {profile.email ?? 'Sem e-mail cadastrado'}
-        </div>
-      </div>
-      <Input label="Bio" value={bio} onChange={setBio} placeholder="Uma linha sobre você (opcional)" />
-
-      {update.isError && <p className="text-sm text-danger">{(update.error as Error).message}</p>}
-      <div className="flex items-center gap-3">
-        <Button onClick={() => void save()} loading={update.isPending}>
-          Salvar alterações
-        </Button>
-        {ok && <span className="text-sm text-success">Salvo!</span>}
-      </div>
-    </Card>
-  );
-}
-
-/* ───────── Endereço ───────── */
-function AddressSection({ profile }: { profile: NonNullable<ReturnType<typeof useProfile>['data']> }) {
-  const update = useUpdateMe();
-  const [form, setForm] = useState({
+  const [f, setF] = useState({
+    name: profile.name,
+    phone: profile.phone ?? '',
+    bio: profile.bio ?? '',
     zipCode: profile.zipCode ?? '',
     street: profile.street ?? '',
     number: profile.number ?? '',
@@ -151,9 +57,9 @@ function AddressSection({ profile }: { profile: NonNullable<ReturnType<typeof us
     city: profile.city ?? '',
     state: profile.state ?? '',
   });
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl ?? '');
   const [ok, setOk] = useState(false);
-  const cep = useCep();
-  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: keyof typeof f) => (v: string) => setF((s) => ({ ...s, [k]: v }));
 
   useEffect(() => {
     if (!ok) return;
@@ -161,53 +67,94 @@ function AddressSection({ profile }: { profile: NonNullable<ReturnType<typeof us
     return () => clearTimeout(t);
   }, [ok]);
 
-  // Preenche rua/bairro/cidade/UF a partir do CEP (ViaCEP).
-  async function onCep(v: string) {
-    setForm((f) => ({ ...f, zipCode: v }));
-    const r = await cep.lookup(v);
-    if (r) {
-      setForm((f) => ({
-        ...f,
-        street: r.street || f.street,
-        neighborhood: r.neighborhood || f.neighborhood,
-        city: r.city || f.city,
-        state: r.state || f.state,
-      }));
-    }
+  // A foto é uma ação de upload → salva na hora.
+  async function saveAvatar(url: string) {
+    setAvatarUrl(url);
+    await update.mutateAsync({ avatarUrl: url });
+    setOk(true);
   }
 
-  async function save() {
-    await update.mutateAsync(form);
+  function applyCep(r: { street?: string; neighborhood?: string; city?: string; state?: string }) {
+    setF((s) => ({
+      ...s,
+      street: r.street || s.street,
+      neighborhood: r.neighborhood || s.neighborhood,
+      city: r.city || s.city,
+      state: r.state || s.state,
+    }));
+  }
+
+  async function saveAll() {
+    await update.mutateAsync({
+      name: f.name.trim(),
+      phone: f.phone.trim() || undefined,
+      bio: f.bio.trim() || undefined,
+      zipCode: f.zipCode.trim() || undefined,
+      street: f.street.trim() || undefined,
+      number: f.number.trim() || undefined,
+      neighborhood: f.neighborhood.trim() || undefined,
+      city: f.city.trim() || undefined,
+      state: f.state.trim() || undefined,
+    });
     setOk(true);
   }
 
   return (
-    <Card className="space-y-4 p-5">
-      <SectionTitle icon={<LuMapPin size={16} />} title="Endereço" />
-      <div className="grid grid-cols-2 gap-3">
-        <Input label="CEP" value={form.zipCode} onChange={(v) => void onCep(v)} placeholder="00000-000" />
-        <Input label="Número" value={form.number} onChange={set('number')} />
-      </div>
-      {cep.loading && <p className="text-xs text-text-muted">Buscando endereço pelo CEP…</p>}
-      {cep.error && <p className="text-xs text-warning">{cep.error} Preencha manualmente.</p>}
-      <Input label="Rua" value={form.street} onChange={set('street')} />
-      <Input label="Bairro" value={form.neighborhood} onChange={set('neighborhood')} />
-      <div className="grid grid-cols-2 gap-3">
-        <Input label="Cidade" value={form.city} onChange={set('city')} />
-        <Input label="Estado" value={form.state} onChange={set('state')} placeholder="UF" />
-      </div>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        void saveAll();
+      }}
+      className="space-y-4"
+    >
+      {/* Dados pessoais */}
+      <Card className="space-y-4 p-5">
+        <SectionTitle icon={<LuUser size={16} />} title="Informações pessoais" />
+        <div className="flex items-center gap-4">
+          <AvatarUploader value={avatarUrl} name={f.name} onChange={(u) => void saveAvatar(u)} />
+          <div className="text-sm text-text-muted">
+            <p className="font-medium text-foreground">Foto de perfil</p>
+            <p>Toque na foto para trocar, recortar e enviar.</p>
+          </div>
+        </div>
+        <Input label="Nome" value={f.name} onChange={set('name')} />
+        <Input label="Telefone" value={f.phone} onChange={set('phone')} placeholder="(11) 99999-8888" />
+        <div>
+          <p className="mb-1 text-sm text-text-muted">E-mail</p>
+          <div className="rounded-medium border border-border bg-content2/50 px-3 py-2.5 text-sm text-text-muted">
+            {profile.email ?? 'Sem e-mail cadastrado'}
+          </div>
+        </div>
+        <Input label="Bio" value={f.bio} onChange={set('bio')} placeholder="Uma linha sobre você (opcional)" />
+      </Card>
+
+      {/* Endereço */}
+      <Card className="space-y-4 p-5">
+        <SectionTitle icon={<LuMapPin size={16} />} title="Endereço" />
+        <CepField value={f.zipCode} onChange={set('zipCode')} onResolved={applyCep} />
+        <Input label="Rua" value={f.street} onChange={set('street')} />
+        <Input label="Número" value={f.number} onChange={set('number')} />
+        <Input label="Bairro" value={f.neighborhood} onChange={set('neighborhood')} />
+        <div className="grid grid-cols-[1fr,5rem] gap-3">
+          <Input label="Cidade" value={f.city} onChange={set('city')} />
+          <Input label="UF" value={f.state} onChange={set('state')} placeholder="SP" />
+        </div>
+      </Card>
+
       {update.isError && <p className="text-sm text-danger">{(update.error as Error).message}</p>}
-      <div className="flex items-center gap-3">
-        <Button onClick={() => void save()} loading={update.isPending}>
-          Salvar endereço
+
+      {/* Único salvar de todo o perfil */}
+      <div className="sticky bottom-3 z-10 flex items-center gap-3 rounded-large border border-border bg-content1/95 p-3 shadow-pop backdrop-blur">
+        <Button type="submit" full loading={update.isPending}>
+          Salvar alterações
         </Button>
-        {ok && <span className="text-sm text-success">Salvo!</span>}
+        {ok && <span className="shrink-0 text-sm text-success">Salvo!</span>}
       </div>
-    </Card>
+    </form>
   );
 }
 
-/* ───────── Senha ───────── */
+/* ───────── Senha (ação separada, fluxo próprio) ───────── */
 function PasswordSection({ hasPassword, hasEmail }: { hasPassword: boolean; hasEmail: boolean }) {
   const requestOtp = useRequestPasswordOtp();
   const setPassword = useSetPassword();
@@ -219,7 +166,6 @@ function PasswordSection({ hasPassword, hasEmail }: { hasPassword: boolean; hasE
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Limpa o erro assim que o usuário edita os campos de senha.
   useEffect(() => {
     setError(null);
   }, [current, next, code]);
@@ -291,6 +237,47 @@ function PasswordSection({ hasPassword, hasEmail }: { hasPassword: boolean; hasE
           {hasPassword ? 'Alterar senha' : 'Cadastrar senha'}
         </Button>
       )}
+    </Card>
+  );
+}
+
+/* ───────── Zona de risco: excluir conta (LGPD) ───────── */
+function DangerZoneSection() {
+  const { logout } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function remove() {
+    setError(null);
+    try {
+      await api.deleteAccount();
+      await logout();
+    } catch (e) {
+      setError((e as Error).message);
+      throw e;
+    }
+  }
+
+  return (
+    <Card className="space-y-3 border-danger/30 p-5">
+      <SectionTitle icon={<LuTrash2 size={16} />} title="Excluir minha conta" />
+      <p className="text-sm text-text-muted">
+        Remove seus dados pessoais e encerra o acesso. Registros financeiros exigidos por lei são
+        mantidos de forma anonimizada. Esta ação não pode ser desfeita.
+      </p>
+      {error && <p className="text-sm text-danger">{error}</p>}
+      <Button variant="secondary" className="text-danger" onClick={() => setOpen(true)}>
+        Excluir minha conta
+      </Button>
+      <ConfirmDialog
+        open={open}
+        danger
+        title="Excluir sua conta?"
+        description="Seus dados pessoais serão removidos e você perderá o acesso. Não é possível desfazer."
+        confirmLabel="Excluir conta"
+        onConfirm={remove}
+        onClose={() => setOpen(false)}
+      />
     </Card>
   );
 }

@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { RadioGroup, Radio } from '@heroui/react';
-import { useCategories, useCreateQuote, useUploadQuota, queryKeys } from '../../lib/queries';
+import { useCategories, useCreateQuote, useProfile, useUploadQuota, queryKeys } from '../../lib/queries';
 import { api } from '../../lib/api';
-import { useCep } from '../../lib/useCep';
 import { Button, Card, Input, PageHeader, Select, Textarea } from '../../components/ui';
+import { CepField } from '../../components/CepField';
 import { IconClose, IconPlus, IconWarning } from '../../components/icons';
 
 const MAX_IMAGES = 10;
@@ -24,6 +24,7 @@ export function NewQuotePage() {
   const { data: categories, isLoading: loadingCategories } = useCategories();
   const createQuote = useCreateQuote();
   const quotaQ = useUploadQuota();
+  const profile = useProfile();
 
   const [categoryId, setCategoryId] = useState('');
   const [title, setTitle] = useState('');
@@ -38,7 +39,6 @@ export function NewQuotePage() {
 
   const [addr, setAddr] = useState({ street: '', number: '', complement: '', neighborhood: '', city: '', state: '' });
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const cep = useCep();
   const setA = (k: keyof typeof addr) => (v: string) => setAddr((a) => ({ ...a, [k]: v }));
 
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -51,20 +51,40 @@ export function NewQuotePage() {
   const reachedMax = imageUrls.length >= MAX_IMAGES;
   const inputDisabled = uploading || quotaExhausted || reachedMax;
 
-  // Preenche o endereço (e as coordenadas do match) a partir do CEP (ViaCEP).
-  async function onCep(v: string) {
-    setZipCode(v);
-    const r = await cep.lookup(v);
-    if (r) {
-      setAddr((a) => ({
-        ...a,
-        street: r.street || a.street,
-        neighborhood: r.neighborhood || a.neighborhood,
-        city: r.city || a.city,
-        state: r.state || a.state,
-      }));
-      if (r.latitude != null && r.longitude != null) setCoords({ lat: r.latitude, lng: r.longitude });
-    }
+  // Preenche o endereço (e as coordenadas do match) a partir do resultado do CEP.
+  function applyCep(r: {
+    street?: string;
+    neighborhood?: string;
+    city?: string;
+    state?: string;
+    latitude?: number;
+    longitude?: number;
+  }) {
+    setAddr((a) => ({
+      ...a,
+      street: r.street || a.street,
+      neighborhood: r.neighborhood || a.neighborhood,
+      city: r.city || a.city,
+      state: r.state || a.state,
+    }));
+    if (r.latitude != null && r.longitude != null) setCoords({ lat: r.latitude, lng: r.longitude });
+  }
+
+  // Preenche o formulário com o endereço já cadastrado do cliente (o CEP resolve
+  // as coordenadas no servidor ao criar). O cliente pode ajustar depois.
+  function useSavedAddress() {
+    const p = profile.data;
+    if (!p) return;
+    setZipCode(p.zipCode ?? '');
+    setAddr({
+      street: p.street ?? '',
+      number: p.number ?? '',
+      complement: '',
+      neighborhood: p.neighborhood ?? '',
+      city: p.city ?? '',
+      state: p.state ?? '',
+    });
+    setCoords(null);
   }
 
   async function onPickImages(e: React.ChangeEvent<HTMLInputElement>) {
@@ -197,16 +217,28 @@ export function NewQuotePage() {
             Local do serviço
           </p>
           <Card className="space-y-4 p-4">
-            <Input
-              label="CEP"
-              placeholder="01001-000"
-              value={zipCode}
-              onChange={(v) => void onCep(v)}
-              isRequired
-              error={errors.location}
-            />
-            {cep.loading && <p className="text-xs text-text-muted">Buscando endereço pelo CEP…</p>}
-            {cep.error && <p className="text-xs text-warning">{cep.error} Preencha manualmente.</p>}
+            {profile.data?.zipCode && (
+              <button
+                type="button"
+                onClick={useSavedAddress}
+                className="w-full rounded-medium border border-border bg-content2/50 p-3 text-left transition-colors hover:border-primary"
+              >
+                <p className="text-sm font-medium">Usar meu endereço cadastrado</p>
+                <p className="mt-0.5 text-xs text-text-muted">
+                  {[profile.data.street, profile.data.number].filter(Boolean).join(', ')}
+                  {profile.data.neighborhood ? ` · ${profile.data.neighborhood}` : ''}
+                  {profile.data.city ? ` · ${profile.data.city}` : ''}
+                  {profile.data.state ? `/${profile.data.state}` : ''}
+                  {` · CEP ${profile.data.zipCode}`}
+                </p>
+                <span className="mt-1 inline-block text-xs font-medium text-primary">Usar este endereço →</span>
+              </button>
+            )}
+            <p className="text-xs text-text-muted">
+              {profile.data?.zipCode ? 'Ou informe outro endereço (ex.: casa de um familiar):' : 'Informe o endereço do serviço:'}
+            </p>
+            <CepField value={zipCode} onChange={setZipCode} onResolved={applyCep} />
+            {errors.location && <p className="text-xs text-danger">{errors.location}</p>}
 
             <Input label="Rua" value={addr.street} onChange={setA('street')} placeholder="Rua / Avenida" />
             <div className="grid grid-cols-2 gap-3">
