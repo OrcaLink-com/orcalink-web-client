@@ -7,6 +7,7 @@ import type {
   ConversationSummary,
   CreateQuoteInput,
   UploadQuota,
+  CepLookup,
   LegalDoc,
   MeProfile,
   PendingLegal,
@@ -184,6 +185,10 @@ export const api = {
   },
   acceptLegal() {
     return request<{ accepted: number }>('/legal/accept', { method: 'POST' });
+  },
+  /** Endereço completo por CEP (ViaCEP + coordenadas). */
+  lookupCep(cep: string) {
+    return request<CepLookup>(`/geocode/lookup?cep=${encodeURIComponent(cep)}`);
   },
   async logout() {
     const refreshToken = getRefresh();
