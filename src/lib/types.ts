@@ -36,6 +36,12 @@ export interface Quote {
   title: string | null;
   description: string;
   zipCode: string | null;
+  street: string | null;
+  number: string | null;
+  complement: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  state: string | null;
   requiresVisit: boolean;
   latitude: number | null;
   longitude: number | null;
@@ -51,6 +57,12 @@ export interface CreateQuoteInput {
   title: string;
   description: string;
   zipCode?: string;
+  street?: string;
+  number?: string;
+  complement?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
   requiresVisit?: boolean;
   latitude?: number;
   longitude?: number;

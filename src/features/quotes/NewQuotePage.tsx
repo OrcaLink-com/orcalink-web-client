@@ -4,8 +4,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { RadioGroup, Radio } from '@heroui/react';
 import { useCategories, useCreateQuote, useUploadQuota, queryKeys } from '../../lib/queries';
 import { api } from '../../lib/api';
+import { useCep } from '../../lib/useCep';
 import { Button, Card, Input, PageHeader, Select, Textarea } from '../../components/ui';
-import { IconClose, IconLocation, IconPlus, IconWarning } from '../../components/icons';
+import { IconClose, IconPlus, IconWarning } from '../../components/icons';
 
 const MAX_IMAGES = 10;
 
@@ -35,12 +36,14 @@ export function NewQuotePage() {
   // assim que o campo fica válido, em vez de só no próximo submit).
   const [submitted, setSubmitted] = useState(false);
 
+  const [addr, setAddr] = useState({ street: '', number: '', complement: '', neighborhood: '', city: '', state: '' });
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const cep = useCep();
+  const setA = (k: keyof typeof addr) => (v: string) => setAddr((a) => ({ ...a, [k]: v }));
+
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [geoBusy, setGeoBusy] = useState(false);
-  const [geoError, setGeoError] = useState<string | null>(null);
 
   const remaining = quotaQ.data?.remaining ?? null;
   const resetsAt = quotaQ.data?.resetsAt ?? null;
@@ -48,24 +51,20 @@ export function NewQuotePage() {
   const reachedMax = imageUrls.length >= MAX_IMAGES;
   const inputDisabled = uploading || quotaExhausted || reachedMax;
 
-  function pickLocation() {
-    if (!('geolocation' in navigator)) {
-      setGeoError('Seu dispositivo não suporta geolocalização.');
-      return;
+  // Preenche o endereço (e as coordenadas do match) a partir do CEP (ViaCEP).
+  async function onCep(v: string) {
+    setZipCode(v);
+    const r = await cep.lookup(v);
+    if (r) {
+      setAddr((a) => ({
+        ...a,
+        street: r.street || a.street,
+        neighborhood: r.neighborhood || a.neighborhood,
+        city: r.city || a.city,
+        state: r.state || a.state,
+      }));
+      if (r.latitude != null && r.longitude != null) setCoords({ lat: r.latitude, lng: r.longitude });
     }
-    setGeoBusy(true);
-    setGeoError(null);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setGeoBusy(false);
-      },
-      (err) => {
-        setGeoError(err.message || 'Não foi possível obter sua localização.');
-        setGeoBusy(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
   }
 
   async function onPickImages(e: React.ChangeEvent<HTMLInputElement>) {
@@ -98,18 +97,18 @@ export function NewQuotePage() {
     if (!categoryId) next.categoryId = 'Escolha uma categoria.';
     if (title.trim().length < 3) next.title = 'Dê um título ao projeto (mín. 3 caracteres).';
     if (description.trim().length < 10) next.description = 'Descreva o serviço com pelo menos 10 caracteres.';
-    // Localização obrigatória: CEP (geocodificado no servidor) OU GPS — para os
-    // profissionais da região encontrarem o pedido pelo raio de atendimento.
+    // CEP obrigatório: define a região do serviço (match por raio) e, com o número,
+    // o endereço exato — revelado ao profissional só ao agendar a visita/execução.
     const cepDigits = zipCode.replace(/\D/g, '');
-    if (!coords && cepDigits.length !== 8) {
-      next.location = 'Informe o CEP ou use sua localização para os profissionais da sua região encontrarem seu pedido.';
+    if (cepDigits.length !== 8) {
+      next.location = 'Informe o CEP do local do serviço.';
     }
     // Sem visita técnica, o profissional orça só pelas fotos/descrição → foto obrigatória.
     if (budgetMode === 'remote' && imageUrls.length === 0) {
       next.photos = 'Sem visita técnica, envie ao menos uma foto para o profissional conseguir orçar.';
     }
     return next;
-  }, [categoryId, title, description, zipCode, coords, budgetMode, imageUrls]);
+  }, [categoryId, title, description, zipCode, budgetMode, imageUrls]);
 
   // Após a 1ª tentativa, revalida ao vivo: o erro some quando o campo fica válido.
   useEffect(() => {
@@ -133,6 +132,12 @@ export function NewQuotePage() {
       title: title.trim(),
       description: description.trim(),
       zipCode: zipCode.trim() || undefined,
+      street: addr.street.trim() || undefined,
+      number: addr.number.trim() || undefined,
+      complement: addr.complement.trim() || undefined,
+      neighborhood: addr.neighborhood.trim() || undefined,
+      city: addr.city.trim() || undefined,
+      state: addr.state.trim() || undefined,
       requiresVisit: budgetMode === 'visit',
       budgetMaxCents,
       latitude: coords?.lat,
@@ -196,30 +201,28 @@ export function NewQuotePage() {
               label="CEP"
               placeholder="01001-000"
               value={zipCode}
-              onChange={setZipCode}
+              onChange={(v) => void onCep(v)}
               isRequired
               error={errors.location}
             />
-            <div>
-              <p className="mb-2 text-xs text-text-muted">
-                Informe o CEP <strong>ou</strong> use sua localização — assim os profissionais da sua região encontram o pedido.
-              </p>
-              <Button
-                variant={coords ? 'success' : 'secondary'}
-                size="sm"
-                onClick={pickLocation}
-                disabled={geoBusy}
-                startContent={<IconLocation size={16} />}
-              >
-                {geoBusy ? 'Obtendo…' : coords ? 'Localização capturada' : 'Usar minha localização'}
-              </Button>
-              {geoError && <p className="mt-1.5 text-xs text-danger">{geoError}</p>}
-              {coords && (
-                <p className="mt-1.5 text-xs text-text-muted">
-                  Localização definida ({coords.lat.toFixed(4)}, {coords.lng.toFixed(4)})
-                </p>
-              )}
+            {cep.loading && <p className="text-xs text-text-muted">Buscando endereço pelo CEP…</p>}
+            {cep.error && <p className="text-xs text-warning">{cep.error} Preencha manualmente.</p>}
+
+            <Input label="Rua" value={addr.street} onChange={setA('street')} placeholder="Rua / Avenida" />
+            <div className="grid grid-cols-2 gap-3">
+              <Input label="Número" value={addr.number} onChange={setA('number')} placeholder="Nº" />
+              <Input label="Complemento (opcional)" value={addr.complement} onChange={setA('complement')} placeholder="Apto, bloco…" />
             </div>
+            <Input label="Bairro" value={addr.neighborhood} onChange={setA('neighborhood')} />
+            <div className="grid grid-cols-[1fr,5rem] gap-3">
+              <Input label="Cidade" value={addr.city} onChange={setA('city')} />
+              <Input label="UF" value={addr.state} onChange={setA('state')} placeholder="SP" />
+            </div>
+
+            <p className="rounded-medium bg-content2/60 px-3 py-2 text-xs text-text-muted">
+              🔒 O <strong>endereço exato</strong> só fica visível ao profissional quando você agendar a
+              visita ou a execução. Antes disso, ele vê apenas a região (cidade/bairro) e a distância.
+            </p>
           </Card>
         </section>
 
