@@ -106,6 +106,9 @@ export interface MeProfile {
   neighborhood: string | null;
   city: string | null;
   state: string | null;
+  emailVerified: boolean;
+  phoneVerified: boolean;
+  createdAt: string;
   hasPassword: boolean;
   providerStatus: string | null;
   termsVersion: string;
