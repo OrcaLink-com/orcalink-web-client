@@ -91,6 +91,17 @@ export interface TokenResponse {
   user: AuthUser;
 }
 
+/** Resposta do login por senha (2FA por dispositivo): precisa de código OU autenticado. */
+export interface PasswordLoginResult {
+  status: 'ok' | 'code_required';
+  devCode?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  expiresIn?: number;
+  user?: AuthUser;
+  deviceToken?: string;
+}
+
 /** Perfil completo do usuário autenticado (GET /auth/me). */
 export interface MeProfile {
   id: string;

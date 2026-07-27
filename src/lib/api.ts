@@ -14,6 +14,7 @@ import type {
   Message,
   MyVisit,
   OtpChannel,
+  PasswordLoginResult,
   PublicProviderProfile,
   UpdateMeInput,
   PricingView,
@@ -32,6 +33,7 @@ const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 const ACCESS_KEY = 'ol_access';
 const REFRESH_KEY = 'ol_refresh';
 const USER_KEY = 'ol_user';
+const DEVICE_KEY = 'ol_device_trust'; // token de dispositivo confiável (dispensa 2FA na senha)
 
 // ───────── Sessão (localStorage) ─────────
 let onAuthLost: (() => void) | null = null;
@@ -158,11 +160,29 @@ export const api = {
     storeSession(res);
     return res.user;
   },
-  /** Login por e-mail + senha (senha cadastrada no perfil). */
-  async loginWithPassword(email: string, password: string) {
-    const res = await request<TokenResponse>('/auth/login', jsonBody({ email, password }), false);
-    storeSession(res);
-    return res.user;
+  /**
+   * Login por e-mail + senha com 2FA por dispositivo.
+   * - Aparelho confiável → entra direto (manda o token guardado).
+   * - Aparelho novo → devolve `code_required`; chame de novo com o `code`.
+   * `trustDevice` marca o aparelho como confiável (guarda o token retornado).
+   */
+  async loginWithPassword(
+    email: string,
+    password: string,
+    opts: { code?: string; trustDevice?: boolean } = {},
+  ): Promise<{ status: 'code_required'; devCode?: string } | { status: 'ok'; user: AuthUser }> {
+    const deviceToken = localStorage.getItem(DEVICE_KEY) ?? undefined;
+    const res = await request<PasswordLoginResult>(
+      '/auth/login',
+      jsonBody({ email, password, deviceToken, ...opts }),
+      false,
+    );
+    if (res.status === 'code_required') {
+      return { status: 'code_required', devCode: res.devCode };
+    }
+    if (res.deviceToken) localStorage.setItem(DEVICE_KEY, res.deviceToken);
+    storeSession({ accessToken: res.accessToken!, refreshToken: res.refreshToken!, expiresIn: res.expiresIn!, user: res.user! });
+    return { status: 'ok', user: res.user! };
   },
   me() {
     return request<AuthUser & { email: string | null; providerStatus: string | null }>('/auth/me');

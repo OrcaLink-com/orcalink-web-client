@@ -18,7 +18,12 @@ interface AuthContextValue {
     name?: string,
   ) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<void>;
-  loginWithPassword: (email: string, password: string) => Promise<void>;
+  /** Login por senha com 2FA por dispositivo. Retorna se ainda falta o código. */
+  loginWithPassword: (
+    email: string,
+    password: string,
+    opts?: { code?: string; trustDevice?: boolean },
+  ) => Promise<{ status: 'code_required'; devCode?: string } | { status: 'ok' }>;
   logout: () => Promise<void>;
 }
 
@@ -58,9 +63,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(await api.loginWithGoogle(idToken));
   }, []);
 
-  const loginWithPassword = useCallback(async (email: string, password: string) => {
-    setUser(await api.loginWithPassword(email, password));
-  }, []);
+  const loginWithPassword = useCallback(
+    async (email: string, password: string, opts?: { code?: string; trustDevice?: boolean }) => {
+      const res = await api.loginWithPassword(email, password, opts);
+      if (res.status === 'ok') setUser(res.user);
+      return res.status === 'ok' ? { status: 'ok' as const } : res;
+    },
+    [],
+  );
 
   const logout = useCallback(async () => {
     await disablePush();
