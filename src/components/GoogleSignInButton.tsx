@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Botão "Entrar com Google" (Google Identity Services).
  *
- * PRONTO, INERTE SEM CREDENCIAL: sem `VITE_GOOGLE_CLIENT_ID` no build, não
+ * PRONTO, INERTE SEM CREDENCIAL: sem `VITE_FIREBASE_AUTH_DOMAIN` no build, não
  * renderiza nada e o login por e-mail segue normal. Mesmo padrão do `push.ts`,
  * que carrega o SDK por CDN sob demanda — sem dependência npm no front.
  *
@@ -15,7 +15,7 @@ declare global {
   }
 }
 
-const GIS_SRC = 'https://accounts.google.com/gsi/client';
+const GIS_SRC = "https://accounts.google.com/gsi/client";
 
 /** Carrega o script do GIS uma única vez (compartilhado entre montagens). */
 let gisPromise: Promise<void> | null = null;
@@ -23,12 +23,13 @@ function loadGis(): Promise<void> {
   if (gisPromise) return gisPromise;
   gisPromise = new Promise<void>((resolve, reject) => {
     if (window.google?.accounts?.id) return resolve();
-    const script = document.createElement('script');
+    const script = document.createElement("script");
     script.src = GIS_SRC;
     script.async = true;
     script.defer = true;
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Não foi possível carregar o Google.'));
+    script.onerror = () =>
+      reject(new Error("Não foi possível carregar o Google."));
     document.head.appendChild(script);
   });
   return gisPromise;
@@ -42,7 +43,9 @@ export function GoogleSignInButton({
   onCredential: (idToken: string) => void | Promise<void>;
   onError?: (message: string) => void;
 }) {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+  const clientId = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as
+    | string
+    | undefined;
   const holder = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
 
@@ -52,7 +55,8 @@ export function GoogleSignInButton({
 
     void loadGis()
       .then(() => {
-        if (cancelled || !holder.current || !window.google?.accounts?.id) return;
+        if (cancelled || !holder.current || !window.google?.accounts?.id)
+          return;
         window.google.accounts.id.initialize({
           client_id: clientId,
           callback: (res: { credential?: string }) => {
@@ -60,11 +64,11 @@ export function GoogleSignInButton({
           },
         });
         window.google.accounts.id.renderButton(holder.current, {
-          theme: 'outline',
-          size: 'large',
-          shape: 'pill',
-          text: 'continue_with',
-          locale: 'pt-BR',
+          theme: "outline",
+          size: "large",
+          shape: "pill",
+          text: "continue_with",
+          locale: "pt-BR",
           width: holder.current.offsetWidth || undefined,
         });
       })

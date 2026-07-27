@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react';
-import { brand } from '@orcalink/design-tokens/brand.config';
-import { useAuth } from '../../auth/AuthContext';
-import { GoogleSignInButton } from '../../components/GoogleSignInButton';
-import { Button, Card, Input } from '../../components/ui';
+import { useEffect, useState } from "react";
+import { brand } from "@orcalink/design-tokens/brand.config";
+import { useAuth } from "../../auth/AuthContext";
+import { GoogleSignInButton } from "../../components/GoogleSignInButton";
+import { Button, Card, Input } from "../../components/ui";
 
-type Mode = 'code' | 'password';
+type Mode = "code" | "password";
 
 /** Sem credencial no build, o bloco do Google (e o divisor) não aparecem. */
-const googleEnabled = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
+const googleEnabled = Boolean(import.meta.env.VITE_FIREBASE_AUTH_DOMAIN);
 
 /**
  * Entrada do cliente. Caminhos: Google (se configurado), código no e-mail (OTP)
@@ -15,13 +15,14 @@ const googleEnabled = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
  * mensagem e o backend recusa o canal (AUTH_PHONE_OTP_ENABLED).
  */
 export function LoginPage() {
-  const { requestOtp, verifyOtp, loginWithGoogle, loginWithPassword } = useAuth();
-  const [mode, setMode] = useState<Mode>('code');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [code, setCode] = useState('');
-  const [name, setName] = useState('');
-  const [step, setStep] = useState<'request' | 'verify'>('request');
+  const { requestOtp, verifyOtp, loginWithGoogle, loginWithPassword } =
+    useAuth();
+  const [mode, setMode] = useState<Mode>("code");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
+  const [step, setStep] = useState<"request" | "verify">("request");
   const [devCode, setDevCode] = useState<string | null>(null);
   const [registered, setRegistered] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,17 +48,19 @@ export function LoginPage() {
   const onRequest = (e: React.FormEvent) => {
     e.preventDefault();
     void run(async () => {
-      const res = await requestOtp('EMAIL', email.trim());
+      const res = await requestOtp("EMAIL", email.trim());
       setDevCode(res.devCode ?? null);
       setRegistered(res.registered);
       if (res.devCode) setCode(res.devCode); // conveniência em dev
-      setStep('verify');
+      setStep("verify");
     });
   };
 
   const onVerify = (e: React.FormEvent) => {
     e.preventDefault();
-    void run(() => verifyOtp('EMAIL', email.trim(), code.trim(), name.trim() || undefined));
+    void run(() =>
+      verifyOtp("EMAIL", email.trim(), code.trim(), name.trim() || undefined),
+    );
   };
 
   const onPassword = (e: React.FormEvent) => {
@@ -67,14 +70,16 @@ export function LoginPage() {
 
   return (
     <div className="mx-auto flex min-h-full max-w-md flex-col justify-center px-6 py-10">
-      <h1 className="mb-1 text-center text-2xl font-bold text-brand">{brand.name}</h1>
+      <h1 className="mb-1 text-center text-2xl font-bold text-brand">
+        {brand.name}
+      </h1>
       <p className="mb-6 text-center text-sm text-text-muted">
         Entre para solicitar e acompanhar seus orçamentos.
       </p>
 
       <Card className="space-y-5 p-5">
         {/* Google primeiro: um toque, sem código. Some (com o divisor) se não
-            houver VITE_GOOGLE_CLIENT_ID — o login por e-mail segue inteiro. */}
+            houver VITE_FIREBASE_AUTH_DOMAIN — o login por e-mail segue inteiro. */}
         {googleEnabled && (
           <>
             <GoogleSignInButton
@@ -85,10 +90,11 @@ export function LoginPage() {
           </>
         )}
 
-        {step === 'verify' ? (
+        {step === "verify" ? (
           <form onSubmit={onVerify} className="space-y-4">
             <p className="text-sm text-text-muted">
-              Enviamos um código para <strong className="text-foreground">{email}</strong>.
+              Enviamos um código para{" "}
+              <strong className="text-foreground">{email}</strong>.
             </p>
             {devCode && (
               <p className="rounded-medium bg-content2 px-3 py-2 text-xs text-text-muted">
@@ -102,7 +108,12 @@ export function LoginPage() {
               placeholder="000000"
             />
             {!registered && (
-              <Input label="Seu nome" value={name} onChange={setName} placeholder="Como te chamamos?" />
+              <Input
+                label="Seu nome"
+                value={name}
+                onChange={setName}
+                placeholder="Como te chamamos?"
+              />
             )}
             {error && <p className="text-sm text-danger">{error}</p>}
             <Button type="submit" full loading={loading}>
@@ -111,7 +122,7 @@ export function LoginPage() {
             <button
               type="button"
               onClick={() => {
-                setStep('request');
+                setStep("request");
                 setError(null);
               }}
               className="w-full text-center text-sm text-text-muted underline"
@@ -119,7 +130,7 @@ export function LoginPage() {
               Usar outro e-mail
             </button>
           </form>
-        ) : mode === 'code' ? (
+        ) : mode === "code" ? (
           <form onSubmit={onRequest} className="space-y-4">
             <Input
               label="E-mail"
@@ -135,7 +146,7 @@ export function LoginPage() {
             </Button>
             <button
               type="button"
-              onClick={() => setMode('password')}
+              onClick={() => setMode("password")}
               className="w-full text-center text-sm text-text-muted underline"
             >
               Entrar com senha
@@ -165,7 +176,7 @@ export function LoginPage() {
             </Button>
             <button
               type="button"
-              onClick={() => setMode('code')}
+              onClick={() => setMode("code")}
               className="w-full text-center text-sm text-text-muted underline"
             >
               Prefiro receber um código por e-mail
