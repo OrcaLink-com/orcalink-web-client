@@ -7,7 +7,7 @@ import { Button, Card, Input } from "../../components/ui";
 type Mode = "code" | "password";
 
 /** Sem credencial no build, o bloco do Google (e o divisor) não aparecem. */
-const googleEnabled = Boolean(import.meta.env.VITE_FIREBASE_AUTH_DOMAIN);
+const googleEnabled = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
 /**
  * Entrada do cliente. Caminhos: Google (se configurado), código no e-mail (OTP)
@@ -79,7 +79,7 @@ export function LoginPage() {
 
       <Card className="space-y-5 p-5">
         {/* Google primeiro: um toque, sem código. Some (com o divisor) se não
-            houver VITE_FIREBASE_AUTH_DOMAIN — o login por e-mail segue inteiro. */}
+            houver VITE_GOOGLE_CLIENT_ID — o login por e-mail segue inteiro. */}
         {googleEnabled && (
           <>
             <GoogleSignInButton

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 /**
  * Botão "Entrar com Google" (Google Identity Services).
  *
- * PRONTO, INERTE SEM CREDENCIAL: sem `VITE_FIREBASE_AUTH_DOMAIN` no build, não
+ * PRONTO, INERTE SEM CREDENCIAL: sem `VITE_GOOGLE_CLIENT_ID` no build, não
  * renderiza nada e o login por e-mail segue normal. Mesmo padrão do `push.ts`,
  * que carrega o SDK por CDN sob demanda — sem dependência npm no front.
  *
@@ -43,9 +43,7 @@ export function GoogleSignInButton({
   onCredential: (idToken: string) => void | Promise<void>;
   onError?: (message: string) => void;
 }) {
-  const clientId = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as
-    | string
-    | undefined;
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
   const holder = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
 
