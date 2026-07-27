@@ -23,6 +23,15 @@ export function useCategories() {
   });
 }
 
+/** Vitrine pública de avaliações (landing + página /avaliacoes). */
+export function useShowcaseReviews(limit = 12, offset = 0) {
+  return useQuery({
+    queryKey: ['reviews', 'showcase', limit, offset] as const,
+    queryFn: () => api.showcaseReviews(limit, offset),
+    staleTime: 60 * 1000,
+  });
+}
+
 export function useMyQuotes() {
   return useQuery({ queryKey: queryKeys.quotes, queryFn: api.listMyQuotes });
 }

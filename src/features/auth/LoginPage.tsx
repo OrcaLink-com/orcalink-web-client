@@ -83,6 +83,14 @@ export function LoginPage() {
 
   return (
     <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-bg px-5 py-10">
+      {/* Voltar para a landing pública. */}
+      <Link
+        to="/"
+        className="absolute left-4 top-4 z-10 flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm text-text-muted transition-colors hover:bg-content2 hover:text-foreground"
+      >
+        <LuArrowLeft size={16} /> Início
+      </Link>
+
       {/* Atmosfera da marca: brilho radial azul + textura sutil (não distrai). */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div
@@ -128,8 +136,8 @@ export function LoginPage() {
 
         {/* Card de autenticação */}
         <div className="rounded-large border border-border bg-content1/80 p-5 shadow-pop backdrop-blur-sm sm:p-6">
-          {/* Google + divisor só aparecem na entrada inicial */}
-          {googleEnabled && screen === "start" && (
+          {/* Google + divisor nas telas de entrada (e-mail e senha). */}
+          {googleEnabled && (screen === "start" || screen === "password") && (
             <>
               <GoogleSignInButton
                 onCode={(code) => run(() => loginWithGoogle(code))}

@@ -5,12 +5,12 @@ import { Accordion, AccordionItem } from '@heroui/react';
 import { brand } from '@orcalink/design-tokens/brand.config';
 import { links } from '@orcalink/design-tokens/links.config';
 import { useAuth } from '../../auth/AuthContext';
-import { useCategories } from '../../lib/queries';
+import { useCategories, useShowcaseReviews } from '../../lib/queries';
 import { Button, ButtonLink } from '../../components/ui';
 import { ContactModal } from '../../components/ContactModal';
+import { ReviewCard } from '../../components/ReviewCard';
 import {
   IconArrowRight,
-  IconCity,
   IconCompare,
   IconEye,
   IconFast,
@@ -19,7 +19,6 @@ import {
   IconShield,
   IconStar,
   IconSuccess,
-  IconUsers,
 } from '../../components/icons';
 
 /**
@@ -31,12 +30,13 @@ export function LandingPage() {
     <div className="min-h-dvh bg-background text-foreground">
       <LandingNav />
       <Hero />
-      <StatsStrip />
-      <MissionVisionValues />
+      <TrustStrip />
+      {/* Primeiro o que o visitante pode fazer; "quem somos" mais pro fim. */}
       <Services />
       <HowItWorks />
       <Benefits />
       <Testimonials />
+      <MissionVisionValues />
       <Faq />
       <Footer />
     </div>
@@ -72,69 +72,51 @@ function LandingNav() {
 function Hero() {
   return (
     <section className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_60%_at_50%_0%,rgba(59,130,246,0.18),transparent)]" />
-      <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:py-24 lg:grid-cols-2">
-        <div className="text-center lg:text-left">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-content1 px-3 py-1 text-xs text-text-muted">
-            <IconStar size={13} className="text-warning" /> Profissionais verificados
-          </span>
-          <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-            Orçamentos de serviços, <span className="text-primary">sem complicação</span>.
-          </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-text-muted lg:mx-0">
-            Descreva o que precisa, receba propostas de profissionais qualificados, compare e contrate
-            com segurança — tudo num só lugar.
-          </p>
-          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start">
-            <ButtonLink to="/login" size="lg" endContent={<IconArrowRight size={18} />}>
-              Solicitar orçamento
-            </ButtonLink>
-            <Button variant="secondary" size="lg" onClick={() => scrollTo('servicos')}>
-              Conhecer serviços
-            </Button>
-          </div>
-        </div>
-        {/* Mockup */}
-        <div className="relative mx-auto w-full max-w-sm">
-          <div className="rounded-[2rem] border border-border bg-content1 p-3 shadow-pop">
-            <div className="rounded-[1.5rem] bg-background p-4">
-              <div className="mb-3 h-2 w-10 rounded-full bg-content3" />
-              <div className="space-y-3">
-                {['Pintura · 3 propostas', 'Marcenaria · 2 propostas', 'Elétrica · 1 proposta'].map((t) => (
-                  <div key={t} className="rounded-large border border-border bg-content1 p-3 shadow-card">
-                    <p className="text-sm font-semibold">{t.split(' · ')[0]}</p>
-                    <p className="text-xs text-text-muted">{t.split(' · ')[1]}</p>
-                    <span className="mt-2 inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white">
-                      Ver propostas
-                      <IconArrowRight size={13} />
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_0%,rgba(59,130,246,0.2),transparent)]" />
+      <div className="mx-auto flex max-w-3xl flex-col items-center px-4 py-20 text-center sm:py-28">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-content1 px-3 py-1 text-xs text-text-muted">
+          <IconStar size={13} className="text-warning" /> Profissionais verificados
+        </span>
+        <h1 className="mt-5 text-4xl font-bold leading-tight tracking-tight text-balance sm:text-5xl lg:text-6xl">
+          Orçamentos de serviços, <span className="text-primary">sem complicação</span>.
+        </h1>
+        <p className="mt-5 max-w-xl text-lg text-text-muted">
+          Descreva o que precisa, receba propostas de profissionais qualificados, compare e contrate
+          com segurança — tudo num só lugar.
+        </p>
+        <div className="mt-8 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
+          <ButtonLink to="/login" size="lg" endContent={<IconArrowRight size={18} />}>
+            Solicitar orçamento
+          </ButtonLink>
+          <Button variant="secondary" size="lg" onClick={() => scrollTo('servicos')}>
+            Conhecer serviços
+          </Button>
         </div>
       </div>
     </section>
   );
 }
 
-/* ───────── Stats ───────── */
-function StatsStrip() {
-  const stats = [
-    { value: '12k+', label: 'Clientes atendidos', icon: <IconUsers size={18} /> },
-    { value: '30k+', label: 'Serviços realizados', icon: <IconSuccess size={18} /> },
-    { value: '3.5k+', label: 'Profissionais', icon: <IconStar size={18} /> },
-    { value: '120+', label: 'Cidades atendidas', icon: <IconCity size={18} /> },
+/* ───────── Faixa de confiança (sinais reais, sem números inflados) ───────── */
+function TrustStrip() {
+  const signals = [
+    { icon: <IconShield size={20} />, title: 'Pagamento protegido', desc: 'O valor fica em custódia e só é liberado quando você confirma a conclusão.' },
+    { icon: <IconSuccess size={20} />, title: 'Profissionais verificados', desc: 'Cadastro com aprovação antes de começar a atender.' },
+    { icon: <IconQuotes size={20} />, title: 'Grátis para o cliente', desc: 'Peça orçamentos e compare propostas sem pagar para usar.' },
+    { icon: <IconRealtime size={20} />, title: 'Suporte e mediação', desc: 'Acompanhamos cada serviço e mediamos se algo sair do combinado.' },
   ];
   return (
     <section className="border-y border-border bg-content1/50">
-      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-4 py-8 md:grid-cols-4">
-        {stats.map((s) => (
-          <div key={s.label} className="text-center">
-            <div className="mb-1 flex justify-center text-primary">{s.icon}</div>
-            <p className="text-2xl font-bold sm:text-3xl">{s.value}</p>
-            <p className="text-xs text-text-muted">{s.label}</p>
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
+        {signals.map((s) => (
+          <div key={s.title} className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-medium bg-primary/15 text-primary">
+              {s.icon}
+            </span>
+            <div>
+              <p className="text-sm font-semibold">{s.title}</p>
+              <p className="mt-0.5 text-xs text-text-muted">{s.desc}</p>
+            </div>
           </div>
         ))}
       </div>
@@ -233,17 +215,16 @@ function MissionVisionValues() {
 
 /* ───────── Benefícios ───────── */
 function Benefits() {
+  // Sem repetir a faixa de confiança (custódia/verificação); foco nos diferenciais.
   const benefits = [
-    { icon: <IconShield size={20} />, title: 'Profissionais verificados', desc: 'Cadastro com aprovação e avaliações reais.' },
     { icon: <IconFast size={20} />, title: 'Atendimento rápido', desc: 'Receba as primeiras propostas em poucas horas.' },
-    { icon: <IconCompare size={20} />, title: 'Compare propostas', desc: 'Veja valores, prazos e garantias lado a lado.' },
-    { icon: <IconShield size={20} />, title: 'Pagamento seguro', desc: 'Valor em custódia, liberado só na conclusão.' },
-    { icon: <IconRealtime size={20} />, title: 'Acompanhamento em tempo real', desc: 'Conversa, visitas e status num só lugar.' },
-    { icon: <IconEye size={20} />, title: 'Transparência total', desc: 'Histórico completo de cada negociação.' },
+    { icon: <IconCompare size={20} />, title: 'Compare propostas', desc: 'Veja valores, prazos e garantias lado a lado antes de decidir.' },
+    { icon: <IconRealtime size={20} />, title: 'Acompanhamento em tempo real', desc: 'Conversa, agendamento, visitas e status num só lugar.' },
+    { icon: <IconEye size={20} />, title: 'Transparência total', desc: 'Histórico completo de cada orçamento e negociação.' },
   ];
   return (
-    <Section eyebrow="Por que a gente" title="Confiança em cada etapa" className="bg-content1/30">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <Section eyebrow="Por que a gente" title="Feito para facilitar a sua vida" className="bg-content1/30">
+      <div className="grid gap-4 sm:grid-cols-2">
         {benefits.map((b) => (
           <div key={b.title} className="rounded-large border border-border bg-content1 p-5 shadow-card">
             <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-medium bg-primary/15 text-primary">
@@ -258,28 +239,58 @@ function Benefits() {
   );
 }
 
-/* ───────── Depoimentos ───────── */
+/* ───────── Avaliações reais (data-driven) ───────── */
 function Testimonials() {
-  const items = [
-    { name: 'Mariana S.', text: 'Recebi 4 propostas no mesmo dia e contratei sem dor de cabeça. Recomendo!' },
-    { name: 'Carlos R.', text: 'Adorei poder comparar tudo lado a lado. O pagamento seguro me deu confiança.' },
-    { name: 'Patrícia L.', text: 'Acompanhei a obra inteira pelo app. Transparência de verdade.' },
-  ];
+  const { data, isLoading } = useShowcaseReviews(3, 0);
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+
+  // Enquanto carrega, não pisca a seção (evita empty-state falso).
+  if (isLoading) {
+    return (
+      <Section eyebrow="Avaliações" title="O que dizem sobre a Orca Link">
+        <div className="mx-auto max-w-md text-center text-sm text-text-muted">Carregando…</div>
+      </Section>
+    );
+  }
+
+  // Sem avaliações ainda: convite honesto a ser o primeiro.
+  if (total === 0) {
+    return (
+      <Section eyebrow="Avaliações" title="Seja um dos primeiros">
+        <div className="mx-auto max-w-lg rounded-large border border-dashed border-border bg-content1 p-8 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-primary">
+            <IconStar size={22} />
+          </div>
+          <p className="text-base font-semibold">Ainda não há avaliações por aqui</p>
+          <p className="mx-auto mt-1.5 max-w-sm text-sm text-text-muted">
+            Contrate um profissional pela plataforma e deixe a primeira avaliação — ela aparece aqui
+            para ajudar outras pessoas a decidir.
+          </p>
+          <div className="mt-5">
+            <ButtonLink to="/login" endContent={<IconArrowRight size={16} />}>
+              Solicitar orçamento
+            </ButtonLink>
+          </div>
+        </div>
+      </Section>
+    );
+  }
+
   return (
-    <Section eyebrow="Depoimentos" title="Quem usa, recomenda">
+    <Section eyebrow="Avaliações" title="Quem usa, recomenda">
       <div className="grid gap-4 md:grid-cols-3">
-        {items.map((t) => (
-          <figure key={t.name} className="rounded-large border border-border bg-content1 p-5 shadow-card">
-            <div className="mb-2 flex gap-0.5 text-warning">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <IconStar key={i} size={14} className="fill-current" />
-              ))}
-            </div>
-            <blockquote className="text-sm text-foreground">"{t.text}"</blockquote>
-            <figcaption className="mt-3 text-xs font-medium text-text-muted">{t.name}</figcaption>
-          </figure>
+        {items.map((r, i) => (
+          <ReviewCard key={i} review={r} />
         ))}
       </div>
+      {total > items.length && (
+        <div className="mt-8 text-center">
+          <ButtonLink to="/avaliacoes" variant="secondary">
+            Ver todas as avaliações ({total})
+          </ButtonLink>
+        </div>
+      )}
     </Section>
   );
 }

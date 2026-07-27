@@ -9,6 +9,7 @@ import { Spinner } from './components/ui';
 
 // Code-splitting: cada tela vira um chunk carregado sob demanda.
 const LandingPage = lazy(() => import('./features/landing/LandingPage').then((m) => ({ default: m.LandingPage })));
+const AvaliacoesPage = lazy(() => import('./features/landing/AvaliacoesPage').then((m) => ({ default: m.AvaliacoesPage })));
 const LoginPage = lazy(() => import('./features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
 const MyQuotesPage = lazy(() => import('./features/quotes/MyQuotesPage').then((m) => ({ default: m.MyQuotesPage })));
 const NewQuotePage = lazy(() => import('./features/quotes/NewQuotePage').then((m) => ({ default: m.NewQuotePage })));
@@ -35,6 +36,7 @@ export function App() {
       <Routes>
         {/* Público: a landing é sempre a home em "/" (mesmo logado). */}
         <Route path="/" element={<LandingPage />} />
+        <Route path="/avaliacoes" element={<AvaliacoesPage />} />
         <Route path="/login" element={isAuthenticated ? <Navigate to="/app" replace /> : <LoginPage />} />
         {/* Documentos legais (públicos). */}
         <Route path="/legal" element={<LegalIndex />} />

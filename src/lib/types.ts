@@ -91,6 +91,21 @@ export interface TokenResponse {
   user: AuthUser;
 }
 
+/** Avaliação pública (vitrine da landing / página de avaliações). */
+export interface ShowcaseReview {
+  authorName: string; // 1º nome + inicial (dado sensível preservado)
+  avatarUrl: string | null;
+  category: string | null;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+}
+
+export interface ShowcaseReviews {
+  items: ShowcaseReview[];
+  total: number;
+}
+
 /** Resposta do login por senha (2FA por dispositivo): precisa de código OU autenticado. */
 export interface PasswordLoginResult {
   status: 'ok' | 'code_required';

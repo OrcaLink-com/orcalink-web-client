@@ -16,6 +16,7 @@ import type {
   OtpChannel,
   PasswordLoginResult,
   PublicProviderProfile,
+  ShowcaseReviews,
   UpdateMeInput,
   PricingView,
   Proposal,
@@ -234,6 +235,10 @@ export const api = {
   // Domínio
   listCategories() {
     return request<Category[]>('/categories', {}, false);
+  },
+  /** Vitrine pública de avaliações (landing + página /avaliacoes). Sem auth. */
+  showcaseReviews(limit = 12, offset = 0) {
+    return request<ShowcaseReviews>(`/reviews/showcase?limit=${limit}&offset=${offset}`, {}, false);
   },
   listMyQuotes() {
     return request<Quote[]>('/quotes');
