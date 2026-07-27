@@ -110,6 +110,7 @@ export interface MeProfile {
   phoneVerified: boolean;
   createdAt: string;
   hasPassword: boolean;
+  hasGoogle: boolean;
   providerStatus: string | null;
   termsVersion: string;
   termsAccepted: boolean;

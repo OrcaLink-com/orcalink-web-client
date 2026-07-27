@@ -152,6 +152,18 @@ export const api = {
     storeSession(res);
     return res.user;
   },
+  /** Login social: troca o ID token do Google por uma sessão. */
+  async loginWithGoogle(idToken: string) {
+    const res = await request<TokenResponse>('/auth/google', jsonBody({ idToken }), false);
+    storeSession(res);
+    return res.user;
+  },
+  /** Login por e-mail + senha (senha cadastrada no perfil). */
+  async loginWithPassword(email: string, password: string) {
+    const res = await request<TokenResponse>('/auth/login', jsonBody({ email, password }), false);
+    storeSession(res);
+    return res.user;
+  },
   me() {
     return request<AuthUser & { email: string | null; providerStatus: string | null }>('/auth/me');
   },
