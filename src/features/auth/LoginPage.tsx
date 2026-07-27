@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react';
-import { LuArrowLeft, LuShieldCheck } from 'react-icons/lu';
-import { Link } from 'react-router-dom';
-import { brand } from '@orcalink/design-tokens/brand.config';
-import { useAuth } from '../../auth/AuthContext';
-import { GoogleSignInButton } from '../../components/GoogleSignInButton';
-import { Button, Input } from '../../components/ui';
+import { useEffect, useState } from "react";
+import { LuArrowLeft, LuShieldCheck } from "react-icons/lu";
+import { Link } from "react-router-dom";
+import { brand } from "@orcalink/design-tokens/brand.config";
+import { useAuth } from "../../auth/AuthContext";
+import { GoogleSignInButton } from "../../components/GoogleSignInButton";
+import { Button, Input } from "../../components/ui";
 
 /** Sem credencial no build, o bloco do Google (e o divisor) não aparecem. */
 const googleEnabled = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
-type Screen = 'start' | 'otp' | 'password' | 'password2fa';
+type Screen = "start" | "otp" | "password" | "password2fa";
 
 /**
  * Entrada do cliente — mobile-first, alinhada à marca.
@@ -18,13 +18,14 @@ type Screen = 'start' | 'otp' | 'password' | 'password2fa';
  * dispositivo" dispensa o código nas próximas vezes. Telefone saiu (custo de SMS).
  */
 export function LoginPage() {
-  const { requestOtp, verifyOtp, loginWithGoogle, loginWithPassword } = useAuth();
+  const { requestOtp, verifyOtp, loginWithGoogle, loginWithPassword } =
+    useAuth();
 
-  const [screen, setScreen] = useState<Screen>('start');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [code, setCode] = useState('');
-  const [name, setName] = useState('');
+  const [screen, setScreen] = useState<Screen>("start");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
   const [trust, setTrust] = useState(false);
   const [registered, setRegistered] = useState(false);
   const [devCode, setDevCode] = useState<string | null>(null);
@@ -50,30 +51,32 @@ export function LoginPage() {
   const goRequestOtp = (e: React.FormEvent) => {
     e.preventDefault();
     void run(async () => {
-      const res = await requestOtp('EMAIL', email.trim());
+      const res = await requestOtp("EMAIL", email.trim());
       setRegistered(res.registered);
       setDevCode(res.devCode ?? null);
       if (res.devCode) setCode(res.devCode);
-      setScreen('otp');
+      setScreen("otp");
     });
   };
 
   const submitOtp = (e: React.FormEvent) => {
     e.preventDefault();
-    void run(() => verifyOtp('EMAIL', email.trim(), code.trim(), name.trim() || undefined));
+    void run(() =>
+      verifyOtp("EMAIL", email.trim(), code.trim(), name.trim() || undefined),
+    );
   };
 
   const submitPassword = (e: React.FormEvent) => {
     e.preventDefault();
     void run(async () => {
       const res = await loginWithPassword(email.trim(), password, {
-        code: screen === 'password2fa' ? code.trim() : undefined,
-        trustDevice: screen === 'password2fa' ? trust : undefined,
+        code: screen === "password2fa" ? code.trim() : undefined,
+        trustDevice: screen === "password2fa" ? trust : undefined,
       });
-      if (res.status === 'code_required') {
+      if (res.status === "code_required") {
         setDevCode(res.devCode ?? null);
         if (res.devCode) setCode(res.devCode);
-        setScreen('password2fa');
+        setScreen("password2fa");
       }
     });
   };
@@ -86,14 +89,14 @@ export function LoginPage() {
           className="absolute left-1/2 top-[-12%] h-[46rem] w-[46rem] -translate-x-1/2 rounded-full opacity-70 blur-3xl"
           style={{
             background:
-              'radial-gradient(closest-side, rgba(59,130,246,0.22), rgba(29,78,216,0.08) 55%, transparent 75%)',
+              "radial-gradient(closest-side, rgba(59,130,246,0.22), rgba(29,78,216,0.08) 55%, transparent 75%)",
           }}
         />
       </div>
 
       <div
         className={`relative w-full max-w-sm transition-all duration-700 ease-out motion-reduce:transition-none motion-reduce:translate-y-0 ${
-          mounted ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+          mounted ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
         }`}
       >
         {/* Marca */}
@@ -102,12 +105,21 @@ export function LoginPage() {
             <div
               aria-hidden
               className="absolute inset-0 -z-10 scale-150 rounded-full opacity-80 blur-2xl"
-              style={{ background: 'radial-gradient(closest-side, rgba(59,130,246,0.35), transparent)' }}
+              style={{
+                background:
+                  "radial-gradient(closest-side, rgba(59,130,246,0.35), transparent)",
+              }}
             />
-            <img src="/brand/mark.svg" alt="" className="h-16 w-16 rounded-2xl shadow-pop" />
+            <img
+              src="/brand/mark.svg"
+              alt=""
+              className="h-16 w-16 rounded-2xl shadow-pop"
+            />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            {screen === 'otp' || screen === 'password2fa' ? 'Confirme que é você' : `Entrar na ${brand.name}`}
+            {screen === "otp" || screen === "password2fa"
+              ? "Confirme que é você"
+              : `Entrar na ${brand.name}`}
           </h1>
           <p className="mt-1.5 max-w-[17rem] text-sm text-text-muted">
             {headerSubtitle(screen, email)}
@@ -117,21 +129,23 @@ export function LoginPage() {
         {/* Card de autenticação */}
         <div className="rounded-large border border-border bg-content1/80 p-5 shadow-pop backdrop-blur-sm sm:p-6">
           {/* Google + divisor só aparecem na entrada inicial */}
-          {googleEnabled && screen === 'start' && (
+          {googleEnabled && screen === "start" && (
             <>
               <GoogleSignInButton
-                onCredential={(idToken) => run(() => loginWithGoogle(idToken))}
+                onCode={(code) => run(() => loginWithGoogle(code))}
                 onError={setError}
               />
               <div className="my-5 flex items-center gap-3">
                 <span className="h-px flex-1 bg-border" />
-                <span className="text-xs font-medium uppercase tracking-wider text-text-muted">ou</span>
+                <span className="text-xs font-medium uppercase tracking-wider text-text-muted">
+                  ou
+                </span>
                 <span className="h-px flex-1 bg-border" />
               </div>
             </>
           )}
 
-          {screen === 'start' && (
+          {screen === "start" && (
             <form onSubmit={goRequestOtp} className="space-y-4">
               <Input
                 label="E-mail"
@@ -145,26 +159,40 @@ export function LoginPage() {
               <Button type="submit" full size="lg" loading={loading}>
                 Receber código por e-mail
               </Button>
-              <TextLink onClick={() => setScreen('password')}>Já tenho senha</TextLink>
+              <TextLink onClick={() => setScreen("password")}>
+                Já tenho senha
+              </TextLink>
             </form>
           )}
 
-          {screen === 'otp' && (
+          {screen === "otp" && (
             <form onSubmit={submitOtp} className="space-y-4">
               {devCode && <DevCode code={devCode} />}
-              <Input label="Código de 6 dígitos" value={code} onChange={setCode} placeholder="000000" />
+              <Input
+                label="Código de 6 dígitos"
+                value={code}
+                onChange={setCode}
+                placeholder="000000"
+              />
               {!registered && (
-                <Input label="Seu nome" value={name} onChange={setName} placeholder="Como te chamamos?" />
+                <Input
+                  label="Seu nome"
+                  value={name}
+                  onChange={setName}
+                  placeholder="Como te chamamos?"
+                />
               )}
               {error && <ErrorText>{error}</ErrorText>}
               <Button type="submit" full size="lg" loading={loading}>
                 Entrar
               </Button>
-              <BackLink onClick={() => setScreen('start')}>Usar outro e-mail</BackLink>
+              <BackLink onClick={() => setScreen("start")}>
+                Usar outro e-mail
+              </BackLink>
             </form>
           )}
 
-          {screen === 'password' && (
+          {screen === "password" && (
             <form onSubmit={submitPassword} className="space-y-4">
               <Input
                 label="E-mail"
@@ -186,14 +214,21 @@ export function LoginPage() {
               <Button type="submit" full size="lg" loading={loading}>
                 Entrar
               </Button>
-              <TextLink onClick={() => setScreen('start')}>Prefiro receber um código</TextLink>
+              <TextLink onClick={() => setScreen("start")}>
+                Prefiro receber um código
+              </TextLink>
             </form>
           )}
 
-          {screen === 'password2fa' && (
+          {screen === "password2fa" && (
             <form onSubmit={submitPassword} className="space-y-4">
               {devCode && <DevCode code={devCode} />}
-              <Input label="Código de 6 dígitos" value={code} onChange={setCode} placeholder="000000" />
+              <Input
+                label="Código de 6 dígitos"
+                value={code}
+                onChange={setCode}
+                placeholder="000000"
+              />
               <label className="flex cursor-pointer items-start gap-2.5 rounded-medium border border-border bg-content2/40 p-3">
                 <input
                   type="checkbox"
@@ -202,15 +237,17 @@ export function LoginPage() {
                   className="mt-0.5 h-4 w-4 shrink-0 accent-primary"
                 />
                 <span className="text-sm text-text-muted">
-                  <span className="font-medium text-foreground">Confiar neste dispositivo</span> por 60 dias —
-                  não pedir código de novo, só a senha.
+                  <span className="font-medium text-foreground">
+                    Confiar neste dispositivo
+                  </span>{" "}
+                  por 60 dias — não pedir código de novo, só a senha.
                 </span>
               </label>
               {error && <ErrorText>{error}</ErrorText>}
               <Button type="submit" full size="lg" loading={loading}>
                 Confirmar e entrar
               </Button>
-              <BackLink onClick={() => setScreen('password')}>Voltar</BackLink>
+              <BackLink onClick={() => setScreen("password")}>Voltar</BackLink>
             </form>
           )}
         </div>
@@ -218,8 +255,11 @@ export function LoginPage() {
         {/* Confiança */}
         <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-text-muted">
           <LuShieldCheck size={14} className="text-success" />
-          Seus dados ficam protegidos.{' '}
-          <Link to="/privacidade" className="underline underline-offset-2 hover:text-foreground">
+          Seus dados ficam protegidos.{" "}
+          <Link
+            to="/privacidade"
+            className="underline underline-offset-2 hover:text-foreground"
+          >
             Privacidade
           </Link>
         </p>
@@ -230,14 +270,14 @@ export function LoginPage() {
 
 function headerSubtitle(screen: Screen, email: string): string {
   switch (screen) {
-    case 'otp':
+    case "otp":
       return `Enviamos um código para ${email}.`;
-    case 'password2fa':
+    case "password2fa":
       return `Primeiro acesso neste aparelho. Enviamos um código para ${email}.`;
-    case 'password':
-      return 'Entre com seu e-mail e senha.';
+    case "password":
+      return "Entre com seu e-mail e senha.";
     default:
-      return 'Solicite e acompanhe seus orçamentos com segurança.';
+      return "Solicite e acompanhe seus orçamentos com segurança.";
   }
 }
 
@@ -253,7 +293,13 @@ function DevCode({ code }: { code: string }) {
   );
 }
 
-function TextLink({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+function TextLink({
+  onClick,
+  children,
+}: {
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <button
       type="button"
@@ -265,7 +311,13 @@ function TextLink({ onClick, children }: { onClick: () => void; children: React.
   );
 }
 
-function BackLink({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+function BackLink({
+  onClick,
+  children,
+}: {
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <button
       type="button"

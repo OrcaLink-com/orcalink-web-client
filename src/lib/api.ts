@@ -154,9 +154,9 @@ export const api = {
     storeSession(res);
     return res.user;
   },
-  /** Login social: troca o ID token do Google por uma sessão. */
-  async loginWithGoogle(idToken: string) {
-    const res = await request<TokenResponse>('/auth/google', jsonBody({ idToken }), false);
+  /** Login social: troca o código do Google (fluxo OAuth) por uma sessão. */
+  async loginWithGoogle(code: string) {
+    const res = await request<TokenResponse>('/auth/google', jsonBody({ code }), false);
     storeSession(res);
     return res.user;
   },
