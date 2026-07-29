@@ -80,6 +80,8 @@ export interface MetaItem {
   label: string;
   value: string;
   emphasize?: boolean;
+  /** Linha recuada (ex.: item de uma lista sob um cabeçalho, como fases do pagamento). */
+  indent?: boolean;
 }
 
 export function BaseActionCard({
@@ -128,12 +130,16 @@ export function BaseActionCard({
               <Divider />
               <ul className="space-y-1.5">
                 {meta.map((m, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm">
+                  <li key={i} className={`flex items-center gap-2 text-sm ${m.indent ? 'pl-7' : ''}`}>
                     {m.icon && <span className="text-text-muted">{m.icon}</span>}
-                    <span className="text-text-muted">{m.label}</span>
-                    <span className={`ml-auto font-medium ${m.emphasize ? 'text-foreground' : 'text-foreground/90'}`}>
-                      {m.value}
-                    </span>
+                    <span className={m.indent ? 'text-foreground/80' : 'text-text-muted'}>{m.label}</span>
+                    {m.value && (
+                      <span
+                        className={`ml-auto font-medium ${m.emphasize ? 'text-foreground' : 'text-foreground/90'}`}
+                      >
+                        {m.value}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>

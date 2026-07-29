@@ -208,6 +208,8 @@ export interface ProposalPayload {
   leadTimeDays?: number;
   warrantyDays?: number;
   paymentMethods?: string[];
+  /** Plano de pagamento faseado (valores já na visão do cliente). */
+  paymentPlan?: { title: string; amountCents: number }[];
   notes?: string;
   status: ProposalCardStatus;
   /** Estimativa que pede visita técnica antes da proposta final. */

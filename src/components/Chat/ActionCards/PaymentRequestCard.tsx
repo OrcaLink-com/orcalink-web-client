@@ -58,9 +58,11 @@ export function PaymentRequestCard({ payload, onPay, onViewDetails, onDownloadRe
             <CardButton accent="purple" icon={<LuCreditCard size={17} />} onPress={onPay} successLabel="Pagamento iniciado">
               Pagar agora
             </CardButton>
-            <CardButton variant="secondary" icon={<LuInfo size={16} />} onPress={onViewDetails}>
-              Ver detalhes
-            </CardButton>
+            {onViewDetails && (
+              <CardButton variant="secondary" icon={<LuInfo size={16} />} onPress={onViewDetails}>
+                Ver detalhes
+              </CardButton>
+            )}
           </>
         )
       }

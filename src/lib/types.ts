@@ -236,6 +236,8 @@ export interface Proposal {
   format?: 'SIMPLE' | 'PRO';
   items?: ProposalItem[];
   technical?: ProposalTechnical | null;
+  /** Plano de pagamento faseado (valores já na visão do leitor). */
+  paymentPlan?: { title: string; amountCents: number }[];
   status: ProposalStatus;
   createdAt: string;
 }
@@ -348,9 +350,27 @@ export interface PricingView {
   quoteStatus: QuoteStatus;
   paymentStatus: PaymentStatus | null;
   mode: string;
+  isPhased?: boolean;
   clientTotalCents?: number;
   providerNetCents?: number;
   components: PricingComponent[];
+}
+
+/** Fase de pagamento (milestone) na visão do cliente. */
+export interface Milestone {
+  id: string;
+  order: number;
+  title: string;
+  amountCents: number;
+  status: PaymentStatus;
+  isNext: boolean;
+  /** Solicitada pelo prestador e pendente → o cliente já pode pagar. */
+  isPayable: boolean;
+  requestedAt?: string | null;
+  pixCopyPaste?: string | null;
+  invoiceUrl?: string | null;
+  paidAt?: string | null;
+  releasedAt?: string | null;
 }
 
 export type VisitType = 'IN_LOCO' | 'EXECUTION';

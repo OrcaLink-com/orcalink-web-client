@@ -59,12 +59,28 @@ export function ProposalCard({ payload, onAccept, onReject, onCompare, onViewDoc
     meta.push({ icon: <LuClock size={15} />, label: 'Prazo', value: `${payload.leadTimeDays} dia(s)` });
   if (!isEstimate && payload.warrantyDays != null)
     meta.push({ icon: <LuShieldCheck size={15} />, label: 'Garantia', value: `${payload.warrantyDays} dia(s)` });
-  if (!isEstimate && payload.paymentMethods && payload.paymentMethods.length > 0)
+  const phased = !isEstimate && payload.paymentPlan && payload.paymentPlan.length > 0;
+  if (phased) {
+    meta.push({
+      icon: <LuLayers size={15} />,
+      label: `Pagamento em ${payload.paymentPlan!.length} fases — você paga por etapa`,
+      value: '',
+    });
+    payload.paymentPlan!.forEach((ph) =>
+      meta.push({
+        icon: <LuLayers size={13} />,
+        indent: true,
+        label: ph.title,
+        value: formatCents(ph.amountCents),
+      }),
+    );
+  } else if (!isEstimate && payload.paymentMethods && payload.paymentMethods.length > 0) {
     meta.push({
       icon: <LuCreditCard size={15} />,
       label: 'Pagamento',
       value: payload.paymentMethods.map((m) => METHOD_LABEL[m] ?? m).join(', '),
     });
+  }
   if (payload.notes)
     meta.push({ icon: <LuStickyNote size={15} />, label: 'Obs.', value: payload.notes });
 

@@ -10,6 +10,7 @@ import type {
   CepLookup,
   LegalDoc,
   MeProfile,
+  Milestone,
   PendingLegal,
   Message,
   MyVisit,
@@ -298,6 +299,19 @@ export const api = {
   },
   complete(quoteId: string) {
     return request<{ status: string }>(`/quotes/${quoteId}/complete`, { method: 'POST' });
+  },
+  // Pagamento faseado (milestones)
+  getMilestones(quoteId: string) {
+    return request<Milestone[]>(`/quotes/${quoteId}/milestones`);
+  },
+  payMilestone(milestoneId: string, method = 'PIX') {
+    return request<{ status: string; invoiceUrl?: string | null; pixCopyPaste?: string | null }>(
+      `/milestones/${milestoneId}/pay`,
+      jsonBody({ method }),
+    );
+  },
+  completeMilestone(milestoneId: string) {
+    return request<{ status: string }>(`/milestones/${milestoneId}/complete`, { method: 'POST' });
   },
 
   // Visitas

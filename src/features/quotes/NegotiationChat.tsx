@@ -6,10 +6,13 @@ import {
   useAcceptProposal,
   useCancelVisit,
   useComplete,
+  useCompleteMilestone,
   useCompleteVisit,
   useConfirmVisit,
   useMessages,
+  useMilestones,
   usePay,
+  usePayMilestone,
   usePricing,
   useProfile,
   useCreateReview,
@@ -26,7 +29,7 @@ import { usePeerTyping, usePresence, useQuoteRealtime, useTypingSignal } from '.
 import { ChatConversationView } from '../../components/Chat';
 import type { ChatActionHandlers, ChatMessage, ChatParticipant, ProposalPayload } from '../../components/Chat';
 import { ProposalDocument } from '../../components/ProposalDocument';
-import { APP_TZ } from '../../lib/format';
+import { APP_TZ, formatBRL } from '../../lib/format';
 import { messagesToChat, toServiceStatus } from './chatAdapter';
 import { computeNextStep } from './nextStep';
 import { NextStepBanner } from '../../components/NextStepBanner';
@@ -76,6 +79,8 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
   const reschedule = useRescheduleVisit(quoteId);
   const cancelVisit = useCancelVisit(quoteId);
   const pay = usePay(quoteId);
+  const payMilestone = usePayMilestone(quoteId);
+  const completeMilestone = useCompleteMilestone(quoteId);
   const reviewQ = useReview(quoteId, quoteQ.data?.status === 'FINISHED');
   const createReview = useCreateReview(quoteId);
   const hasReview = Boolean(reviewQ.data);
@@ -88,6 +93,15 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
 
   const awaitingPayment = quoteStatus === 'WAITING_PAYMENT' || quoteStatus === 'PROVIDER_SELECTED';
   const pricingQ = usePricing(quoteId, isContracted || awaitingPayment);
+  const isPhased = pricingQ.data?.isPhased ?? false;
+  // Fases (milestones) do orçamento faseado — carrega enquanto há contrato ativo.
+  const milestonesQ = useMilestones(
+    quoteId,
+    isPhased && (isContracted || awaitingPayment || quoteStatus === 'IN_PROGRESS'),
+  );
+  const milestones = milestonesQ.data ?? [];
+  const payablePhase = milestones.find((m) => m.isPayable);
+  const paidPhase = milestones.find((m) => m.status === 'PAID');
 
   const providerVisits = useMemo<Visit[]>(() => {
     if (!conversation) return [];
@@ -158,8 +172,27 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
         },
       });
     }
-    // Contratado e aguardando pagamento → card de pagamento com CTA "Pagar agora".
-    if (isContracted && awaitingPayment) {
+    // FASEADO: a fase solicitada (pagável) vira o card de pagamento no chat.
+    if (isPhased && payablePhase) {
+      list.push({
+        id: `milestone-pay-${payablePhase.id}`,
+        type: 'payment_request',
+        sender: peer,
+        createdAt: payablePhase.requestedAt ?? new Date().toISOString(),
+        payload: {
+          paymentId: payablePhase.id, // = milestoneId
+          amountCents: payablePhase.amountCents,
+          description:
+            payablePhase.order === 0
+              ? `Fase 1 · ${payablePhase.title} (entrada) — pague para o profissional iniciar o trabalho. O valor fica em custódia até você confirmar a entrega desta fase.`
+              : `Fase ${payablePhase.order + 1} · ${payablePhase.title} — pague para liberar esta etapa. O valor fica em custódia até você confirmar a entrega.`,
+          method: 'undefined',
+          status: 'pending',
+        },
+      });
+    }
+    // Pagamento ÚNICO (não faseado): contratado e aguardando pagamento → "Pagar agora".
+    if (!isPhased && isContracted && awaitingPayment) {
       list.push({
         id: 'payment-card',
         type: 'payment_request',
@@ -174,6 +207,30 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
         },
       });
     }
+    // FASEADO: divisórias marcando o início (pago, em custódia) e o fim (liberado) de cada fase.
+    if (isPhased) {
+      const system: ChatParticipant = { id: 'system', name: 'Sistema', role: 'system' };
+      for (const m of milestones) {
+        if (m.paidAt && (m.status === 'PAID' || m.status === 'RELEASED')) {
+          list.push({
+            id: `ms-start-${m.id}`,
+            type: 'system',
+            sender: system,
+            createdAt: m.paidAt,
+            payload: { text: `Fase "${m.title}" iniciada · ${formatBRL(m.amountCents)} em custódia`, icon: 'payment' },
+          });
+        }
+        if (m.releasedAt && m.status === 'RELEASED') {
+          list.push({
+            id: `ms-end-${m.id}`,
+            type: 'system',
+            sender: system,
+            createdAt: m.releasedAt,
+            payload: { text: `Fim da fase "${m.title}" · repasse liberado ao profissional`, icon: 'check' },
+          });
+        }
+      }
+    }
     // Serviço concluído → card "Serviço concluído" com ação de avaliar (ou a nota já dada).
     if (quoteStatus === 'FINISHED') {
       const finishedAt = reviewQ.data?.createdAt ?? new Date().toISOString();
@@ -185,8 +242,10 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
         payload: { finishedAt, rating: reviewQ.data?.rating },
       });
     }
+    // Faseado injeta eventos com data real (paidAt/releasedAt) → reordena por tempo.
+    if (isPhased) list.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     return list;
-  }, [messagesQ.data, conversation, peer, user?.id, otherFinalsPending, awaitingVisit, isContracted, quoteStatus, pricingQ.data, reviewQ.data?.rating, reviewQ.data?.createdAt]);
+  }, [messagesQ.data, conversation, peer, user?.id, otherFinalsPending, awaitingVisit, isContracted, awaitingPayment, quoteStatus, pricingQ.data, isPhased, milestones, payablePhase?.id, payablePhase?.requestedAt, reviewQ.data?.rating, reviewQ.data?.createdAt]);
 
   const [docPayload, setDocPayload] = useState<ProposalPayload | null>(null);
 
@@ -209,7 +268,13 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
     onSuggestNewDate: async (visitId, date, time) => {
       await reschedule.mutateAsync({ visitId, scheduledAt: `${date}T${time}:00` });
     },
-    onPay: async () => {
+    onPay: async (paymentId) => {
+      // Faseado: paymentId = milestoneId → paga só aquela fase.
+      if (isPhased && paymentId && paymentId !== 'quote-payment') {
+        const res = await payMilestone.mutateAsync(paymentId);
+        if (res.invoiceUrl) window.open(res.invoiceUrl, '_blank', 'noopener');
+        return;
+      }
       const res = await pay.mutateAsync();
       if (res.invoiceUrl) window.open(res.invoiceUrl, '_blank', 'noopener');
     },
@@ -262,7 +327,25 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
         }}
       />
     );
-  } else if (quoteStatus === 'IN_PROGRESS') {
+  } else if (isPhased && paidPhase) {
+    // Faseado: confirmar a entrega da fase paga libera o repasse dela.
+    aboveComposer = (
+      <NextActionCard
+        tone="green"
+        icon={<LuCircleCheck size={20} />}
+        title={`Confirme a entrega da fase "${paidPhase.title}"`}
+        description="Ao confirmar, liberamos o repasse desta fase ao profissional. Ele poderá solicitar a próxima."
+        ctaLabel="Confirmar entrega da fase"
+        onCta={async () => {
+          await completeMilestone.mutateAsync(paidPhase.id);
+        }}
+        confirm={{
+          description: `Confirme que a fase "${paidPhase.title}" foi entregue a contento. O repasse desta fase será liberado.`,
+          confirmLabel: 'Sim, fase entregue',
+        }}
+      />
+    );
+  } else if (!isPhased && !pricingQ.isLoading && quoteStatus === 'IN_PROGRESS') {
     aboveComposer = (
       <NextActionCard
         tone="green"

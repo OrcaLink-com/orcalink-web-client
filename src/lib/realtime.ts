@@ -22,6 +22,11 @@ export function useSocket(): Socket {
   return getSocket();
 }
 
+/** true se o socket está conectado (o tempo real está funcionando). */
+export function isSocketConnected(): boolean {
+  return socket?.connected ?? false;
+}
+
 /**
  * Força uma reconexão do socket relendo o token atual. Deve ser chamado logo
  * após renovar o access token (o token expirado derruba o socket no handshake;

@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import {
   useComplete,
+  useCompleteMilestone,
   useConfirmVisit,
   useCreateReview,
+  useMilestones,
   usePay,
+  usePayMilestone,
   usePricing,
   useRescheduleVisit,
   useReview,
@@ -12,7 +15,7 @@ import {
 } from '../../lib/queries';
 import { formatBRL, formatDateTime } from '../../lib/format';
 import { IconConfirmed, IconStar, IconWaiting } from '../../components/icons';
-import type { QuoteStatus, VisitStatus } from '../../lib/types';
+import type { PaymentStatus, QuoteStatus, VisitStatus } from '../../lib/types';
 
 const PAYMENT_STAGES: QuoteStatus[] = [
   'WAITING_PAYMENT',
@@ -32,6 +35,11 @@ export function PaymentSection({ quoteId, status }: { quoteId: string; status: Q
   if (pricingQ.isLoading) return <p className="text-text-muted">Carregando pagamento…</p>;
   if (!pricingQ.data) return null;
   const total = pricingQ.data.clientTotalCents ?? 0;
+
+  // Pagamento faseado (milestones): painel próprio, uma custódia por fase.
+  if (pricingQ.data.isPhased) {
+    return <PhasedPaymentSection quoteId={quoteId} totalCents={total} enabled={enabled} />;
+  }
 
   return (
     <div className="rounded-lg border border-brand/50 bg-card p-4 shadow-card">
@@ -126,6 +134,149 @@ export function PaymentSection({ quoteId, status }: { quoteId: string; status: Q
           Serviço concluído e pago. Obrigado!
         </p>
       )}
+    </div>
+  );
+}
+
+/* ───────── Pagamento faseado (milestones) ───────── */
+const MILESTONE_STATUS: Record<PaymentStatus, { label: string; cls: string }> = {
+  PENDING: { label: 'A pagar', cls: 'bg-card-2 text-text-muted' },
+  AUTHORIZED: { label: 'Processando', cls: 'bg-card-2 text-text-muted' },
+  PAID: { label: 'Em custódia', cls: 'bg-brand/15 text-brand' },
+  RELEASED: { label: 'Concluída', cls: 'bg-status-finished/15 text-status-finished' },
+  REFUNDED: { label: 'Estornada', cls: 'bg-danger/15 text-danger' },
+  FAILED: { label: 'Falhou', cls: 'bg-danger/15 text-danger' },
+  CANCELED: { label: 'Cancelada', cls: 'bg-danger/15 text-danger' },
+};
+
+function PhasedPaymentSection({
+  quoteId,
+  totalCents,
+  enabled,
+}: {
+  quoteId: string;
+  totalCents: number;
+  enabled: boolean;
+}) {
+  const milestonesQ = useMilestones(quoteId, enabled);
+  const payM = usePayMilestone(quoteId);
+  const completeM = useCompleteMilestone(quoteId);
+
+  if (milestonesQ.isLoading) return <p className="text-text-muted">Carregando fases…</p>;
+  const milestones = milestonesQ.data ?? [];
+  if (milestones.length === 0) return null;
+
+  const doneCount = milestones.filter((m) => m.status === 'RELEASED').length;
+
+  return (
+    <div className="rounded-lg border border-brand/50 bg-card p-4 shadow-card">
+      <div className="mb-1 flex items-center justify-between">
+        <span className="text-sm font-semibold">Pagamento em fases</span>
+        <span className="text-xs text-text-muted">
+          {doneCount} de {milestones.length} concluídas
+        </span>
+      </div>
+      <div className="mb-3 flex items-center justify-between">
+        <span className="text-xs text-text-muted">Valor total</span>
+        <span className="text-lg font-bold text-brand">{formatBRL(totalCents)}</span>
+      </div>
+      <p className="mb-3 text-xs text-text-muted">
+        Você paga cada fase quando ela começa. O valor fica retido e é liberado ao profissional
+        quando você confirma a entrega daquela fase.
+      </p>
+
+      {(payM.isError || completeM.isError) && (
+        <p className="mb-2 text-sm text-danger">
+          {((payM.error || completeM.error) as Error)?.message}
+        </p>
+      )}
+
+      <ol className="space-y-2">
+        {milestones.map((m) => {
+          const st = MILESTONE_STATUS[m.status];
+          const busy = payM.isPending || completeM.isPending;
+          return (
+            <li key={m.id} className="rounded-md border border-border bg-bg p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">
+                    {m.order + 1}. {m.title}
+                  </p>
+                  <p className="text-xs text-text-muted">{formatBRL(m.amountCents)}</p>
+                </div>
+                <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${st.cls}`}>
+                  {st.label}
+                </span>
+              </div>
+
+              {/* Fase a pagar (entrada ou solicitada pelo profissional) — mostra PIX após iniciar */}
+              {m.status === 'PENDING' && m.isPayable && (
+                <div className="mt-2">
+                  {m.pixCopyPaste ? (
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-text-muted">PIX copia e cola</p>
+                      <textarea
+                        readOnly
+                        value={m.pixCopyPaste}
+                        onFocus={(e) => e.currentTarget.select()}
+                        className="w-full break-all rounded-md border border-border bg-card-2 px-2 py-1.5 text-xs"
+                        rows={3}
+                      />
+                      {m.invoiceUrl && (
+                        <a
+                          href={m.invoiceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="block rounded-md bg-brand px-4 py-2 text-center text-sm font-medium text-white"
+                        >
+                          Abrir fatura e pagar
+                        </a>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() =>
+                        payM.mutate(m.id, {
+                          onSuccess: (data) => {
+                            if (data.invoiceUrl) window.open(data.invoiceUrl, '_blank', 'noopener');
+                          },
+                        })
+                      }
+                      disabled={busy}
+                      className="w-full rounded-md bg-brand px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+                    >
+                      {busy ? 'Processando…' : `Pagar esta fase · ${formatBRL(m.amountCents)}`}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Fase paga (em custódia) — confirmar entrega libera o repasse */}
+              {m.status === 'PAID' && (
+                <button
+                  onClick={() => completeM.mutate(m.id)}
+                  disabled={busy}
+                  className="mt-2 w-full rounded-md bg-status-finished px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+                >
+                  {busy ? 'Confirmando…' : 'Confirmar entrega desta fase'}
+                </button>
+              )}
+
+              {/* Fase pendente: a vez chegou mas o profissional ainda não solicitou */}
+              {m.status === 'PENDING' && !m.isPayable && m.isNext && (
+                <p className="mt-2 text-xs text-text-muted">
+                  Aguardando o profissional solicitar o pagamento desta fase.
+                </p>
+              )}
+
+              {/* Fase pendente mas ainda não é a vez */}
+              {m.status === 'PENDING' && !m.isPayable && !m.isNext && (
+                <p className="mt-2 text-xs text-text-muted">Disponível após a fase anterior.</p>
+              )}
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 }

@@ -1,6 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from './api';
+import { isSocketConnected } from './realtime';
 import type { CreateQuoteInput, UpdateMeInput } from './types';
+
+/**
+ * Intervalo de refetch "fallback": o tempo real vem do WebSocket (que invalida
+ * as queries nos eventos). Enquanto o socket está conectado, quase não busca
+ * (rede de segurança a cada 2 min); se o socket cai, volta a buscar a cada 20s.
+ */
+const rtInterval = () => (isSocketConnected() ? 120000 : 20000);
 
 export const queryKeys = {
   categories: ['categories'] as const,
@@ -55,7 +63,7 @@ export function useQuoteConversations(quoteId: string) {
   return useQuery({
     queryKey: queryKeys.quoteConversations(quoteId),
     queryFn: () => api.listQuoteConversations(quoteId),
-    refetchInterval: 30000,
+    refetchInterval: rtInterval,
   });
 }
 
@@ -64,7 +72,7 @@ export function useMyConversations() {
   return useQuery({
     queryKey: queryKeys.myConversations,
     queryFn: api.listMyConversations,
-    refetchInterval: 30000,
+    refetchInterval: rtInterval,
   });
 }
 
@@ -82,7 +90,7 @@ export function useMessages(conversationId: string | null) {
     queryKey: conversationId ? queryKeys.messages(conversationId) : ['messages', 'none'],
     queryFn: () => api.getMessages(conversationId as string),
     enabled: Boolean(conversationId),
-    refetchInterval: 30000,
+    refetchInterval: rtInterval,
   });
 }
 
@@ -146,13 +154,43 @@ export function useComplete(quoteId: string) {
   return usePaymentMutation(quoteId, () => api.complete(quoteId));
 }
 
+// ───────── Pagamento faseado (milestones) ─────────
+export function useMilestones(quoteId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: [...queryKeys.pricing(quoteId), 'milestones'] as const,
+    queryFn: () => api.getMilestones(quoteId),
+    enabled,
+  });
+}
+
+function useMilestoneMutation<T>(quoteId: string, fn: (milestoneId: string) => Promise<T>) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...queryKeys.pricing(quoteId), 'milestones'] });
+      void qc.invalidateQueries({ queryKey: queryKeys.quote(quoteId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.pricing(quoteId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.quotes });
+    },
+  });
+}
+
+export function usePayMilestone(quoteId: string) {
+  return useMilestoneMutation(quoteId, (id: string) => api.payMilestone(id));
+}
+
+export function useCompleteMilestone(quoteId: string) {
+  return useMilestoneMutation(quoteId, (id: string) => api.completeMilestone(id));
+}
+
 // ───────── Visitas ─────────
 export function useVisits(quoteId: string, enabled: boolean) {
   return useQuery({
     queryKey: queryKeys.visits(quoteId),
     queryFn: () => api.listVisits(quoteId),
     enabled,
-    refetchInterval: 30000,
+    refetchInterval: rtInterval,
   });
 }
 
@@ -249,7 +287,7 @@ export function useMyVisits() {
   return useQuery({
     queryKey: ['my-visits'] as const,
     queryFn: api.listMyVisits,
-    refetchInterval: 30000,
+    refetchInterval: rtInterval,
   });
 }
 
@@ -258,7 +296,8 @@ export function useNotifications() {
   return useQuery({
     queryKey: ['notifications'] as const,
     queryFn: api.listNotifications,
-    refetchInterval: 60000,
+    // Tempo real via socket (notification:new); polling é só fallback.
+    refetchInterval: rtInterval,
   });
 }
 
