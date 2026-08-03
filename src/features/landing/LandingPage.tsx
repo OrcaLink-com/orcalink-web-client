@@ -100,10 +100,10 @@ function Hero() {
 /* ───────── Faixa de confiança (sinais reais, sem números inflados) ───────── */
 function TrustStrip() {
   const signals = [
-    { icon: <IconShield size={20} />, title: 'Pagamento protegido', desc: 'O valor fica em custódia e só é liberado quando você confirma a conclusão.' },
+    { icon: <IconShield size={20} />, title: 'Você no controle', desc: 'Combine o serviço e o pagamento diretamente com o profissional escolhido.' },
     { icon: <IconSuccess size={20} />, title: 'Profissionais verificados', desc: 'Cadastro com aprovação antes de começar a atender.' },
     { icon: <IconQuotes size={20} />, title: 'Grátis para o cliente', desc: 'Peça orçamentos e compare propostas sem pagar para usar.' },
-    { icon: <IconRealtime size={20} />, title: 'Suporte e mediação', desc: 'Acompanhamos cada serviço e mediamos se algo sair do combinado.' },
+    { icon: <IconRealtime size={20} />, title: 'Tudo registrado', desc: 'A negociação e o que foi combinado ficam no histórico do chat.' },
   ];
   return (
     <section className="border-y border-border bg-content1/50">
@@ -156,7 +156,7 @@ function HowItWorks() {
     { title: 'Solicite um orçamento', desc: 'Descreva o serviço, adicione fotos e envie em minutos.' },
     { title: 'Receba propostas', desc: 'Profissionais verificados respondem com valores e prazos.' },
     { title: 'Escolha o melhor profissional', desc: 'Compare propostas, avaliações e portfólio.' },
-    { title: 'Pague com segurança pela plataforma', desc: 'O valor fica em custódia e só é liberado quando o serviço é concluído.' },
+    { title: 'Combine o pagamento com o profissional', desc: 'Vocês acertam valor e forma de pagamento diretamente; fica tudo registrado no chat.' },
     { title: 'Acompanhe o serviço', desc: 'Chat, agendamento e status em tempo real.' },
     { title: 'Avalie o prestador', desc: 'Sua nota ajuda toda a comunidade.' },
   ];
@@ -215,7 +215,7 @@ function MissionVisionValues() {
 
 /* ───────── Benefícios ───────── */
 function Benefits() {
-  // Sem repetir a faixa de confiança (custódia/verificação); foco nos diferenciais.
+  // Sem repetir a faixa de confiança (conexão/verificação); foco nos diferenciais.
   const benefits = [
     { icon: <IconFast size={20} />, title: 'Atendimento rápido', desc: 'Receba as primeiras propostas em poucas horas.' },
     { icon: <IconCompare size={20} />, title: 'Compare propostas', desc: 'Veja valores, prazos e garantias lado a lado antes de decidir.' },
@@ -298,9 +298,10 @@ function Testimonials() {
 /* ───────── FAQ ───────── */
 function Faq() {
   const faqs = [
-    { q: 'Quanto custa para solicitar um orçamento?', a: 'É gratuito para o cliente. Você só paga o serviço contratado.' },
-    { q: 'Como sei que o profissional é confiável?', a: 'Todos passam por aprovação e têm avaliações de outros clientes.' },
-    { q: 'O pagamento é seguro?', a: 'Sim. O valor fica em custódia e só é liberado quando você confirma a conclusão.' },
+    { q: 'Quanto custa para solicitar um orçamento?', a: 'É gratuito para o cliente. Você só paga o serviço diretamente ao profissional que contratar.' },
+    { q: 'Como escolho um bom profissional?', a: 'Cada profissional tem perfil, portfólio e avaliações de clientes para você comparar e decidir. A escolha e a contratação são suas — a OrçaLink conecta e organiza a negociação, mas não se responsabiliza pela execução do serviço.' },
+    { q: 'A OrçaLink executa ou é responsável pelo serviço?', a: 'Não. Somos uma plataforma de indicação: conectamos você a profissionais e organizamos a negociação no chat. A execução, a qualidade e a garantia são de responsabilidade do profissional contratado.' },
+    { q: 'Como funciona o pagamento?', a: 'O pagamento é combinado e feito diretamente entre você e o profissional, pela forma que preferirem (PIX, dinheiro, etc.). A OrçaLink não processa nem retém valores — apenas conecta e organiza a conversa.' },
     { q: 'Posso comparar várias propostas?', a: 'Pode. Você compara valores, prazos e garantias lado a lado antes de decidir.' },
   ];
   return (

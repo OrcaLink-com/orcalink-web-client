@@ -14,6 +14,7 @@ import {
   useVisits,
 } from '../../lib/queries';
 import { formatBRL, formatDateTime } from '../../lib/format';
+import { paymentsEnabled } from '../../lib/flags';
 import { IconConfirmed, IconStar, IconWaiting } from '../../components/icons';
 import type { PaymentStatus, QuoteStatus, VisitStatus } from '../../lib/types';
 
@@ -32,6 +33,43 @@ export function PaymentSection({ quoteId, status }: { quoteId: string; status: Q
   const complete = useComplete(quoteId);
 
   if (!enabled) return null;
+
+  // MODO INDICAÇÃO: a plataforma não processa pagamento. Nada de "Valor total",
+  // custódia ou "Pagar" — só o passo de conclusão (que só aparece em execução).
+  if (!paymentsEnabled) {
+    if (status === 'FINISHED') {
+      return (
+        <p className="rounded-md bg-status-finished px-3 py-2 text-center text-sm text-white">
+          Serviço concluído. Obrigado!
+        </p>
+      );
+    }
+    if (status === 'IN_PROGRESS') {
+      return (
+        <div className="rounded-lg border border-border bg-card p-4 shadow-card">
+          {complete.isError && (
+            <p className="mb-2 text-sm text-danger">{(complete.error as Error).message}</p>
+          )}
+          <button
+            onClick={() => complete.mutate()}
+            disabled={complete.isPending}
+            className="w-full rounded-md bg-status-finished px-4 py-2.5 font-medium text-white disabled:opacity-50"
+          >
+            {complete.isPending ? 'Confirmando…' : 'Confirmar conclusão'}
+          </button>
+        </div>
+      );
+    }
+    // PAID / EXECUTION_SCHEDULED → aguardando o profissional agendar/iniciar.
+    return (
+      <p className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-text-muted shadow-card">
+        {status === 'PAID'
+          ? 'Contratado! Aguardando o profissional agendar a execução.'
+          : 'Execução agendada. Aguardando o profissional iniciar o serviço.'}
+      </p>
+    );
+  }
+
   if (pricingQ.isLoading) return <p className="text-text-muted">Carregando pagamento…</p>;
   if (!pricingQ.data) return null;
   const total = pricingQ.data.clientTotalCents ?? 0;
@@ -114,7 +152,9 @@ export function PaymentSection({ quoteId, status }: { quoteId: string; status: Q
         <>
           <p className="mb-3 flex items-start gap-2 rounded-md bg-card-2 px-3 py-2 text-sm text-text-muted">
             <IconConfirmed size={16} className="mt-0.5 shrink-0" />
-            Pagamento em custódia. Confirme quando o serviço for concluído para liberar o repasse.
+            {paymentsEnabled
+              ? 'Pagamento em custódia. Confirme quando o serviço for concluído para liberar o repasse.'
+              : 'Combine o pagamento diretamente com o profissional. Confirme aqui quando o serviço for concluído.'}
           </p>
           {complete.isError && (
             <p className="mb-2 text-sm text-danger">{(complete.error as Error).message}</p>

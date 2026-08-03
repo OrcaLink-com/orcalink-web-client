@@ -63,7 +63,7 @@ export function ProposalCard({ payload, onAccept, onReject, onCompare, onViewDoc
   if (phased) {
     meta.push({
       icon: <LuLayers size={15} />,
-      label: `Pagamento em ${payload.paymentPlan!.length} fases — você paga por etapa`,
+      label: `Plano em ${payload.paymentPlan!.length} etapas`,
       value: '',
     });
     payload.paymentPlan!.forEach((ph) =>

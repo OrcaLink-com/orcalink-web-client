@@ -30,6 +30,7 @@ import { ChatConversationView } from '../../components/Chat';
 import type { ChatActionHandlers, ChatMessage, ChatParticipant, ProposalPayload } from '../../components/Chat';
 import { ProposalDocument } from '../../components/ProposalDocument';
 import { APP_TZ, formatBRL } from '../../lib/format';
+import { paymentsEnabled } from '../../lib/flags';
 import { messagesToChat, toServiceStatus } from './chatAdapter';
 import { computeNextStep } from './nextStep';
 import { NextStepBanner } from '../../components/NextStepBanner';
@@ -173,7 +174,7 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
       });
     }
     // FASEADO: a fase solicitada (pagável) vira o card de pagamento no chat.
-    if (isPhased && payablePhase) {
+    if (paymentsEnabled && isPhased && payablePhase) {
       list.push({
         id: `milestone-pay-${payablePhase.id}`,
         type: 'payment_request',
@@ -192,7 +193,7 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
       });
     }
     // Pagamento ÚNICO (não faseado): contratado e aguardando pagamento → "Pagar agora".
-    if (!isPhased && isContracted && awaitingPayment) {
+    if (paymentsEnabled && !isPhased && isContracted && awaitingPayment) {
       list.push({
         id: 'payment-card',
         type: 'payment_request',
@@ -346,18 +347,26 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
       />
     );
   } else if (!isPhased && !pricingQ.isLoading && quoteStatus === 'IN_PROGRESS') {
+    // Mesmo passo do fluxo com pagamento: só ao final da execução. No modo
+    // indicação a diferença é apenas o texto (não há repasse a liberar).
     aboveComposer = (
       <NextActionCard
         tone="green"
         icon={<LuCircleCheck size={20} />}
         title="Confirme a conclusão do serviço"
-        description="Ao confirmar, liberamos o repasse ao profissional e você poderá avaliar."
+        description={
+          paymentsEnabled
+            ? 'Ao confirmar, liberamos o repasse ao profissional e você poderá avaliar.'
+            : 'Confirme quando o serviço tiver sido concluído. Depois você poderá avaliar o profissional.'
+        }
         ctaLabel="Confirmar conclusão"
         onCta={async () => {
           await complete.mutateAsync();
         }}
         confirm={{
-          description: 'Confirme que o serviço foi concluído a contento. O pagamento será liberado ao profissional.',
+          description: paymentsEnabled
+            ? 'Confirme que o serviço foi concluído a contento. O pagamento será liberado ao profissional.'
+            : 'Confirme que o serviço foi concluído a contento. O pagamento você combina diretamente com o profissional.',
           confirmLabel: 'Sim, serviço concluído',
         }}
       />

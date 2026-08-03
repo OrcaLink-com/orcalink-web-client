@@ -19,3 +19,14 @@ body {
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Fundo do chat: padrão de doodles bem discreto (estilo WhatsApp) + leve brilho no topo. */
+.chat-surface {
+  background-color: var(--color-bg);
+  background-image:
+    url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='120'%20height='120'%3E%3Cg%20fill='none'%20stroke='%23ffffff'%20stroke-opacity='0.04'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='22'%20cy='24'%20r='8'/%3E%3Cpath%20d='M58%2018v14M51%2025h14'/%3E%3Cpath%20d='M96%2020l9%2015h-18z'/%3E%3Cpath%20d='M20%2090q7-10%2014%200t14%200'/%3E%3Ccircle%20cx='92'%20cy='92'%20r='6'/%3E%3Cpath%20d='M104%2084l7%207M111%2084l-7%207'/%3E%3Cpath%20d='M56%20100h16M64%2092v16'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--color-brand-primary) 8%, transparent), transparent 60%);
+  background-repeat: repeat, no-repeat;
+  background-size: 120px 120px, auto;
+  background-position: center top, center top;
+}

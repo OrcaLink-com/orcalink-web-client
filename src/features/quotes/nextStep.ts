@@ -1,4 +1,5 @@
 import type { QuoteStatus } from '../../lib/types';
+import { paymentsEnabled } from '../../lib/flags';
 
 /**
  * "Próximo passo" da negociação, calculado na perspectiva de quem vê. O objetivo
@@ -153,7 +154,7 @@ export function computeNextStep(input: NextStepInput): NextStep | null {
 
     case 'PAID':
       return {
-        stageLabel: 'Pagamento confirmado',
+        stageLabel: paymentsEnabled ? 'Pagamento confirmado' : 'Contratado',
         tone: 'sky',
         youAct: !isClient,
         actionText: isClient ? `Aguardando ${other} agendar a execução` : 'Agende a data de execução',
@@ -175,7 +176,13 @@ export function computeNextStep(input: NextStepInput): NextStep | null {
         tone: 'sky',
         youAct: isClient,
         actionText: isClient ? 'Confirme a conclusão quando o serviço terminar' : `Aguardando ${other} confirmar a conclusão`,
-        hintText: isClient ? 'Após confirmar, o repasse é liberado ao profissional.' : 'O repasse é liberado após a confirmação.',
+        hintText: isClient
+          ? paymentsEnabled
+            ? 'Após confirmar, o repasse é liberado ao profissional.'
+            : 'Depois de confirmar, você poderá avaliar o profissional.'
+          : paymentsEnabled
+            ? 'O repasse é liberado após a confirmação.'
+            : 'O cliente confirma a conclusão do serviço.',
       };
 
     case 'FINISHED':
@@ -183,7 +190,7 @@ export function computeNextStep(input: NextStepInput): NextStep | null {
         stageLabel: 'Serviço concluído',
         tone: 'green',
         youAct: isClient,
-        actionText: isClient ? 'Avalie o profissional' : 'Serviço concluído — repasse liberado',
+        actionText: isClient ? 'Avalie o profissional' : paymentsEnabled ? 'Serviço concluído — repasse liberado' : 'Serviço concluído',
         hintText: isClient ? 'Sua avaliação ajuda outros clientes.' : undefined,
       };
 

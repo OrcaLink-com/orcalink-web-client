@@ -51,11 +51,7 @@ export function ChatMessages({ messages, viewer, handlers, loading, peerTyping, 
       aria-live="polite"
       aria-relevant="additions"
       aria-label="Mensagens da conversa"
-      className={`overflow-y-auto ${className}`}
-      style={{
-        background:
-          'radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--color-brand-primary) 8%, transparent), transparent 60%), var(--color-bg)',
-      }}
+      className={`chat-surface overflow-y-auto ${className}`}
     >
       <div className="mx-auto flex max-w-3xl flex-col gap-1 px-3 py-4 sm:px-5">
         <p className="mx-auto mb-2 flex max-w-sm items-center gap-1.5 rounded-full bg-content1/70 px-3 py-1.5 text-center text-[11px] text-text-muted backdrop-blur">

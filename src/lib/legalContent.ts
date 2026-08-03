@@ -1,8 +1,8 @@
 /**
- * Conteúdo dos documentos legais — **MINUTA PROVISÓRIA**.
- * Estrutura baseada em docs/17. O texto final deve ser revisado por advogado
- * antes do lançamento; ao publicar a versão definitiva, faça o "bump" de
- * TERMS_VERSION no backend (api/src/auth/terms.constants.ts) para forçar re-aceite.
+ * Conteúdo dos documentos legais — **MINUTA PROVISÓRIA** (revisar com advogado).
+ * MODO INDICAÇÃO (2026-07-30): a plataforma apenas CONECTA cliente e profissional;
+ * NÃO processa, intermedeia nem retém pagamento — o pagamento é combinado e pago
+ * diretamente entre as partes. Espelha api/src/legal/legal-defaults.ts.
  */
 
 export interface LegalSection {
@@ -17,16 +17,18 @@ export interface LegalDoc {
 }
 
 const COMPANY = 'OrcaLink';
+const UPDATED = '2026-07-30';
 
 export const TERMS_DOC: LegalDoc = {
   title: 'Termos de Uso',
-  updatedAt: '2026-07-13',
-  intro: `Estes Termos regem o uso da plataforma ${COMPANY}, que conecta clientes a profissionais de serviços. Ao usar a plataforma, você concorda com estes Termos.`,
+  updatedAt: UPDATED,
+  intro: `Estes Termos regem o uso da plataforma ${COMPANY}, um serviço de INDICAÇÃO que conecta clientes a profissionais de serviços. Ao usar a plataforma, você concorda com estes Termos.`,
   sections: [
     {
-      title: '1. Papel da plataforma',
+      title: '1. Papel da plataforma — apenas indicação',
       paragraphs: [
-        `A ${COMPANY} é uma intermediadora: aproxima clientes e profissionais e facilita a negociação, o pagamento e a comunicação. A ${COMPANY} não é a prestadora do serviço contratado — a execução, a qualidade e a garantia são responsabilidade do profissional.`,
+        `A ${COMPANY} é uma plataforma de indicação e conexão: aproxima clientes e profissionais e oferece um espaço para negociação, comunicação e agendamento. A ${COMPANY} NÃO é prestadora do serviço, NÃO processa, intermedeia ou retém pagamentos e NÃO é parte do contrato de prestação de serviço.`,
+        'A contratação, a execução, a qualidade, a garantia e o PAGAMENTO do serviço são de responsabilidade exclusiva do cliente e do profissional, que negociam diretamente entre si.',
       ],
     },
     {
@@ -38,37 +40,37 @@ export const TERMS_DOC: LegalDoc = {
     {
       title: '3. Como funciona',
       paragraphs: [
-        'O cliente solicita um orçamento; profissionais enviam estimativas e propostas; a negociação e o agendamento ocorrem no chat. Ao aceitar uma proposta final, o cliente paga pela plataforma e o serviço é agendado e executado.',
+        'O cliente descreve o que precisa; profissionais enviam estimativas e propostas; a negociação e o agendamento ocorrem no chat. Ao aceitar uma proposta, cliente e profissional combinam o serviço e o pagamento DIRETAMENTE entre si. A plataforma registra o acordo para organização, mas não recebe, não guarda e não repassa valores.',
       ],
     },
     {
-      title: '4. Pagamentos e custódia',
+      title: '4. Pagamento — direto entre as partes',
       paragraphs: [
-        'O pagamento é processado por gateway parceiro e mantido em custódia. O valor só é repassado ao profissional após a conclusão do serviço ser confirmada (pelo cliente ou por mediação da plataforma).',
+        `A ${COMPANY} NÃO processa pagamentos. O valor do serviço e a forma de pagamento são combinados e pagos diretamente entre cliente e profissional, pelos meios que eles escolherem. A ${COMPANY} não mantém custódia, não emite cobrança e não tem responsabilidade sobre o pagamento, inadimplência, estorno ou reembolso.`,
       ],
     },
     {
-      title: '5. Comissão e taxas',
+      title: '5. Remuneração da plataforma',
       paragraphs: [
-        `A ${COMPANY} retém uma comissão sobre os serviços concluídos, informada de forma transparente. Impostos e obrigações fiscais do serviço são de responsabilidade do profissional.`,
+        `A ${COMPANY} poderá cobrar do profissional uma taxa ou comissão pela indicação/uso da plataforma, acordada de forma transparente e paga diretamente à ${COMPANY}. Não há cobrança sobre valores processados pela plataforma, pois a plataforma não processa pagamentos. Impostos e obrigações fiscais do serviço são de responsabilidade do profissional.`,
       ],
     },
     {
       title: '6. Cancelamento e reembolso',
       paragraphs: [
-        'Cancelamentos antes do pagamento são livres. Após o pagamento, aplicam-se a Política de Cancelamento e Reembolso e a mediação da plataforma. (Detalhamento em documento específico.)',
+        'Como a plataforma não processa pagamentos, cancelamentos, reembolsos ou ajustes de valor são resolvidos diretamente entre cliente e profissional, conforme o que combinaram. A plataforma pode colaborar como canal de comunicação, sem responsabilidade financeira. (Detalhamento em documento específico.)',
       ],
     },
     {
-      title: '7. Uso da plataforma e anti-desintermediação',
+      title: '7. Conteúdo e uso da plataforma',
       paragraphs: [
-        'Fechar o serviço "por fora" para burlar a comissão viola estes Termos e pode levar à suspensão da conta. Não é permitido conteúdo ilícito, ofensivo ou fraudulento.',
+        'Não é permitido conteúdo ilícito, ofensivo, enganoso ou fraudulento. O uso deve respeitar o Código de Conduta. A plataforma pode suspender contas que descumpram estes Termos ou a lei.',
       ],
     },
     {
       title: '8. Responsabilidades e limitações',
       paragraphs: [
-        `A ${COMPANY} envida esforços para manter a plataforma disponível e segura, mas não garante resultado do serviço executado pelo profissional. A responsabilidade da plataforma limita-se à intermediação.`,
+        `A ${COMPANY} envida esforços para manter a plataforma disponível e segura, mas NÃO garante a contratação, a qualidade, a execução ou o pagamento do serviço. A responsabilidade da ${COMPANY} limita-se à disponibilização do meio de conexão entre as partes; ela não responde por danos decorrentes do serviço prestado ou de acordos financeiros entre cliente e profissional.`,
       ],
     },
     {
@@ -82,31 +84,31 @@ export const TERMS_DOC: LegalDoc = {
 
 export const PRIVACY_DOC: LegalDoc = {
   title: 'Política de Privacidade',
-  updatedAt: '2026-07-13',
+  updatedAt: UPDATED,
   intro: `Esta Política explica como a ${COMPANY} trata seus dados pessoais, em conformidade com a LGPD (Lei 13.709/2018).`,
   sections: [
     {
       title: '1. Dados que coletamos',
       paragraphs: [
-        'Dados de cadastro (nome, e-mail, telefone), endereço/CEP e localização (para conectar você a profissionais da região), CPF/CNPJ do profissional, mensagens do chat, imagens enviadas nos orçamentos e dados de pagamento (tokenizados pelo gateway — não armazenamos dados de cartão).',
+        'Dados de cadastro (nome, e-mail, telefone), endereço/CEP e localização (para conectar você a profissionais da região), CPF/CNPJ do profissional, mensagens do chat e imagens enviadas nos orçamentos. A plataforma NÃO coleta nem armazena dados de pagamento (cartão, conta bancária), pois não processa pagamentos.',
       ],
     },
     {
       title: '2. Finalidades e bases legais',
       paragraphs: [
-        'Usamos os dados para executar o contrato (viabilizar orçamentos, pagamento e comunicação), cumprir obrigações legais, e por legítimo interesse (segurança e melhoria do serviço). Comunicações opcionais dependem do seu consentimento.',
+        'Usamos os dados para operar a plataforma de indicação (conectar as partes), cumprir obrigações legais e por legítimo interesse (segurança e melhoria do serviço). Comunicações opcionais dependem do seu consentimento.',
       ],
     },
     {
       title: '3. Compartilhamento',
       paragraphs: [
-        'Compartilhamos dados com operadores necessários à operação: gateway de pagamento (Asaas), provedor de notificações (Google/Firebase) e provedor de e-mail. Entre cliente e profissional, compartilhamos apenas o necessário para a prestação do serviço.',
+        'Compartilhamos dados com operadores necessários à operação (provedor de notificações e de e-mail). Entre cliente e profissional, compartilhamos apenas o necessário para viabilizar o contato e a prestação do serviço.',
       ],
     },
     {
       title: '4. Transferência internacional',
       paragraphs: [
-        'Alguns provedores (ex.: Google/Firebase) processam dados em servidores fora do Brasil, com salvaguardas adequadas.',
+        'Alguns provedores processam dados em servidores fora do Brasil, com salvaguardas adequadas.',
       ],
     },
     {
@@ -138,7 +140,7 @@ export const PRIVACY_DOC: LegalDoc = {
 
 export const CONDUCT_DOC: LegalDoc = {
   title: 'Código de Conduta',
-  updatedAt: '2026-07-13',
+  updatedAt: UPDATED,
   intro: `Este Código estabelece as regras de convivência e uso da plataforma ${COMPANY} para clientes e profissionais. O objetivo é manter um ambiente seguro, honesto e respeitoso para todos.`,
   sections: [
     {
@@ -154,21 +156,21 @@ export const CONDUCT_DOC: LegalDoc = {
       ],
     },
     {
-      title: '3. Mantenha a negociação na plataforma',
+      title: '3. Negocie de boa-fé',
       paragraphs: [
-        `A negociação, o agendamento, o pagamento e a comunicação devem ocorrer dentro da ${COMPANY}. Combinar o serviço "por fora" para evitar a comissão (desintermediação) desprotege ambas as partes — sem custódia do pagamento, sem histórico e sem mediação — e viola este Código.`,
+        'Use o chat da plataforma para negociar e alinhar o serviço de forma clara e honesta. O pagamento é combinado diretamente entre cliente e profissional — registre o combinado (valor, forma e prazos) para evitar mal-entendidos.',
       ],
     },
     {
       title: '4. Condutas proibidas',
       paragraphs: [
-        'É proibido: publicar conteúdo ilícito, fraudulento ou enganoso; usar a plataforma para fins diferentes da contratação de serviços; tentar burlar taxas ou o sistema de pagamento; criar contas falsas ou múltiplas para manipular avaliações; e compartilhar dados de terceiros sem autorização.',
+        'É proibido: publicar conteúdo ilícito, fraudulento ou enganoso; usar a plataforma para fins diferentes da contratação de serviços; criar contas falsas ou múltiplas para manipular avaliações; e compartilhar dados de terceiros sem autorização.',
       ],
     },
     {
       title: '5. Segurança e privacidade',
       paragraphs: [
-        'Não solicite nem compartilhe senhas, códigos de acesso ou dados sensíveis fora dos fluxos oficiais. Use os dados da outra parte apenas para viabilizar o serviço contratado.',
+        'Não solicite nem compartilhe senhas, códigos de acesso ou dados sensíveis fora dos fluxos oficiais. Use os dados da outra parte apenas para viabilizar o serviço.',
       ],
     },
     {
@@ -178,9 +180,9 @@ export const CONDUCT_DOC: LegalDoc = {
       ],
     },
     {
-      title: '7. Denúncias e mediação',
+      title: '7. Denúncias',
       paragraphs: [
-        `Situações de descumprimento podem ser reportadas pelo canal de contato. A ${COMPANY} pode mediar conflitos e, quando necessário, reter ou devolver valores em custódia conforme as políticas aplicáveis.`,
+        `Situações de descumprimento podem ser reportadas pelo canal de contato. Como a ${COMPANY} não é parte do serviço nem do pagamento, sua atuação limita-se a moderar o uso da plataforma (advertir, suspender ou remover conteúdo/conta).`,
       ],
     },
     {
@@ -194,55 +196,43 @@ export const CONDUCT_DOC: LegalDoc = {
 
 export const REFUND_DOC: LegalDoc = {
   title: 'Política de Cancelamento e Reembolso',
-  updatedAt: '2026-07-13',
-  intro: `Esta Política explica quando e como cancelamentos e reembolsos acontecem na ${COMPANY}. O pagamento é mantido em custódia e só é repassado ao profissional após a conclusão do serviço — o que protege o cliente.`,
+  updatedAt: UPDATED,
+  intro: `Como a ${COMPANY} é uma plataforma de indicação e NÃO processa pagamentos, cancelamentos e reembolsos são resolvidos diretamente entre cliente e profissional.`,
   sections: [
     {
-      title: '1. Cancelamento antes do pagamento',
+      title: '1. A plataforma não retém valores',
       paragraphs: [
-        'Enquanto o serviço não foi pago, cliente e profissional podem encerrar a negociação livremente, sem custo.',
+        `A ${COMPANY} não recebe, não guarda e não repassa o valor do serviço. Não há custódia nem estorno pela plataforma: qualquer devolução ou ajuste é acordado e realizado diretamente entre as partes.`,
       ],
     },
     {
-      title: '2. Cancelamento após o pagamento e antes da execução',
+      title: '2. Cancelamento da negociação',
       paragraphs: [
-        'Se o serviço já foi pago mas ainda não começou, o cliente pode cancelar e receber o reembolso do valor mantido em custódia. Eventuais custos de processamento do pagamento podem ser descontados quando aplicável e informado.',
+        'Enquanto o serviço não é combinado, cliente e profissional podem encerrar a conversa livremente, sem custo.',
       ],
     },
     {
-      title: '3. Direito de arrependimento (CDC art. 49)',
+      title: '3. Cancelamento após o acordo',
       paragraphs: [
-        'Nas contratações feitas pela plataforma, o cliente pode se arrepender em até 7 (sete) dias corridos, com devolução dos valores, ressalvados os serviços já iniciados a pedido do cliente ou de natureza urgente.',
+        'Depois de combinado o serviço, o cancelamento e eventual reembolso seguem o que cliente e profissional acordaram entre si. Recomenda-se registrar as condições no chat.',
       ],
     },
     {
-      title: '4. Cancelamento durante ou após o início da execução',
+      title: '4. Direito de arrependimento (CDC art. 49)',
       paragraphs: [
-        'Iniciada a execução, o reembolso pode ser parcial, proporcional à etapa já realizada e a materiais adquiridos, apurado por mediação da plataforma quando houver divergência.',
+        'Em compras a distância, o consumidor pode se arrepender em até 7 (sete) dias corridos, tratando diretamente com o profissional contratado, ressalvados os serviços já iniciados a seu pedido ou de natureza urgente.',
       ],
     },
     {
-      title: '5. Profissional não comparece ou não executa',
+      title: '5. Problemas na execução',
       paragraphs: [
-        'Se o profissional não comparecer, atrasar de forma injustificada ou não executar o serviço, o cliente tem direito a reembolso integral do valor em custódia.',
+        'Divergências sobre qualidade, prazo ou valor são resolvidas entre cliente e profissional. A plataforma pode servir de canal de comunicação, sem responsabilidade financeira.',
       ],
     },
     {
-      title: '6. Serviço executado com problema',
+      title: '6. Como registrar',
       paragraphs: [
-        'Havendo defeito ou execução em desacordo com o combinado, a plataforma media a solução: reexecução, ajuste ou reembolso (total ou parcial), conforme o caso e as evidências.',
-      ],
-    },
-    {
-      title: '7. Como solicitar',
-      paragraphs: [
-        'O pedido de cancelamento/reembolso é feito pelo canal de contato da plataforma, com a descrição do ocorrido. Enquanto o valor está em custódia, o repasse ao profissional fica suspenso até a decisão.',
-      ],
-    },
-    {
-      title: '8. Prazos de reembolso',
-      paragraphs: [
-        'Aprovado o reembolso, o estorno é solicitado ao provedor de pagamento; o prazo de crédito depende do meio utilizado (ex.: PIX costuma ser mais rápido; cartão segue o prazo da operadora/emissor).',
+        'Mantenha o combinado (valor, forma de pagamento, prazos e condições de cancelamento) registrado no chat da plataforma, o que ajuda a comprovar o acordo entre as partes.',
       ],
     },
   ],
