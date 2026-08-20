@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
+import { lazyPage } from './lib/lazyPage';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext';
 import { Layout } from './components/Layout';
@@ -8,21 +9,21 @@ import { TermsGate } from './components/TermsGate';
 import { Spinner } from './components/ui';
 
 // Code-splitting: cada tela vira um chunk carregado sob demanda.
-const LandingPage = lazy(() => import('./features/landing/LandingPage').then((m) => ({ default: m.LandingPage })));
-const AvaliacoesPage = lazy(() => import('./features/landing/AvaliacoesPage').then((m) => ({ default: m.AvaliacoesPage })));
-const LoginPage = lazy(() => import('./features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
-const MyQuotesPage = lazy(() => import('./features/quotes/MyQuotesPage').then((m) => ({ default: m.MyQuotesPage })));
-const NewQuotePage = lazy(() => import('./features/quotes/NewQuotePage').then((m) => ({ default: m.NewQuotePage })));
-const QuoteDetailPage = lazy(() => import('./features/quotes/QuoteDetailPage').then((m) => ({ default: m.QuoteDetailPage })));
-const NegotiationPage = lazy(() => import('./features/quotes/NegotiationPage').then((m) => ({ default: m.NegotiationPage })));
-const CompareProposalsPage = lazy(() => import('./features/quotes/CompareProposalsPage').then((m) => ({ default: m.CompareProposalsPage })));
-const MyVisitsPage = lazy(() => import('./features/quotes/MyVisitsPage').then((m) => ({ default: m.MyVisitsPage })));
-const InboxPage = lazy(() => import('./features/inbox/InboxPage').then((m) => ({ default: m.InboxPage })));
-const EuPage = lazy(() => import('./features/profile/EuPage').then((m) => ({ default: m.EuPage })));
-const ProfilePage = lazy(() => import('./features/profile/ProfilePage').then((m) => ({ default: m.ProfilePage })));
-const ProviderProfilePage = lazy(() => import('./features/providers/ProviderProfilePage').then((m) => ({ default: m.ProviderProfilePage })));
-const ChatDemoPage = lazy(() => import('./features/chat-demo/ChatDemoPage').then((m) => ({ default: m.ChatDemoPage })));
-const NotFoundPage = lazy(() => import('./features/misc/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
+const LandingPage = lazyPage(() => import('./features/landing/LandingPage'), 'LandingPage');
+const AvaliacoesPage = lazyPage(() => import('./features/landing/AvaliacoesPage'), 'AvaliacoesPage');
+const LoginPage = lazyPage(() => import('./features/auth/LoginPage'), 'LoginPage');
+const MyQuotesPage = lazyPage(() => import('./features/quotes/MyQuotesPage'), 'MyQuotesPage');
+const NewQuotePage = lazyPage(() => import('./features/quotes/NewQuotePage'), 'NewQuotePage');
+const QuoteDetailPage = lazyPage(() => import('./features/quotes/QuoteDetailPage'), 'QuoteDetailPage');
+const NegotiationPage = lazyPage(() => import('./features/quotes/NegotiationPage'), 'NegotiationPage');
+const CompareProposalsPage = lazyPage(() => import('./features/quotes/CompareProposalsPage'), 'CompareProposalsPage');
+const MyVisitsPage = lazyPage(() => import('./features/quotes/MyVisitsPage'), 'MyVisitsPage');
+const InboxPage = lazyPage(() => import('./features/inbox/InboxPage'), 'InboxPage');
+const EuPage = lazyPage(() => import('./features/profile/EuPage'), 'EuPage');
+const ProfilePage = lazyPage(() => import('./features/profile/ProfilePage'), 'ProfilePage');
+const ProviderProfilePage = lazyPage(() => import('./features/providers/ProviderProfilePage'), 'ProviderProfilePage');
+const ChatDemoPage = lazyPage(() => import('./features/chat-demo/ChatDemoPage'), 'ChatDemoPage');
+const NotFoundPage = lazyPage(() => import('./features/misc/NotFoundPage'), 'NotFoundPage');
 
 function Loading() {
   return <Spinner label="Carregando…" />;
