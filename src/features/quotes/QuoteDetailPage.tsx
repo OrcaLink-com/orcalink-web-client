@@ -58,7 +58,7 @@ export function QuoteDetailPage() {
   }, [openChat, location.pathname]);
 
   const timeline = useMemo(
-    () => (quote ? buildQuoteTimeline(quote, convs, visits) : []),
+    () => (quote ? buildQuoteTimeline(quote, convs, visits, setOpenConv) : []),
     [quote, convs, visits],
   );
 

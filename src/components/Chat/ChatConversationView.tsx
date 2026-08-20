@@ -59,7 +59,7 @@ export function ChatConversationView({
         variants={paneIn}
         initial="initial"
         animate="animate"
-        className={`flex h-full min-h-0 w-full flex-col bg-background ${className}`}
+        className={`flex h-full min-h-0 w-full flex-col overflow-x-hidden bg-background ${className}`}
       >
         <ChatHeader
           peer={peer}

@@ -1,6 +1,7 @@
 import { formatBRL, formatDateTime } from '../../lib/format';
 import type { ConversationSummary, Quote, Visit } from '../../lib/types';
 import type { TimelineItem } from '../../components/ui';
+import { IconChat } from '../../components/icons';
 
 const visitStatusPt: Record<string, string> = {
   PENDING: 'pendente',
@@ -24,15 +25,21 @@ const proposalOutcomePt: Record<string, string> = {
  * propostas), com atribuição de prestador (pode haver vários). Sem endpoint dedicado.
  * Retorna do mais recente para o mais antigo (topo = atual).
  *
- * `by` identifica o autor do evento ("Você" ou o nome do prestador) para que, com
- * vários prestadores, dê para saber de quem é cada ação.
+ * `by` identifica o autor do evento ("Você" ou o nome do prestador). Quando o evento
+ * é de um prestador com conversa, ganha um botão "Chat" (via `onOpenChat`) para abrir
+ * a negociação daquele prestador — ex.: a solicitação de visita leva direto ao chat.
  */
 export function buildQuoteTimeline(
   quote: Pick<Quote, 'createdAt'>,
   convs: ConversationSummary[],
   visits: Visit[],
+  onOpenChat?: (conversationId: string) => void,
 ): TimelineItem[] {
-  const raw: Array<{ at: string; title: string; by: string; body?: string }> = [];
+  // Conversa por prestador (para linkar visita/proposta → chat).
+  const convByProvider = new Map<string, string>();
+  for (const c of convs) convByProvider.set(c.counterpartId, c.id);
+
+  const raw: Array<{ at: string; title: string; by: string; body?: string; conversationId?: string }> = [];
 
   raw.push({ at: quote.createdAt, title: 'Orçamento criado', by: 'Você' });
 
@@ -43,6 +50,7 @@ export function buildQuoteTimeline(
       title: `${v.type === 'IN_LOCO' ? 'Visita técnica' : 'Execução'} ${visitStatusPt[v.status] ?? ''}`.trim(),
       by: v.providerName,
       body: v.scheduledAt ? formatDateTime(v.scheduledAt) : undefined,
+      conversationId: convByProvider.get(v.providerId),
     });
   }
 
@@ -55,6 +63,7 @@ export function buildQuoteTimeline(
       title: `Enviou ${tipo} · ${formatBRL(p.amountCents)}`,
       by: c.counterpartName,
       body: proposalOutcomePt[p.status],
+      conversationId: c.id,
     });
   }
 
@@ -67,5 +76,15 @@ export function buildQuoteTimeline(
     body: e.body,
     tone: 'done' as const,
     current: i === 0,
+    action:
+      e.conversationId && onOpenChat ? (
+        <button
+          type="button"
+          onClick={() => onOpenChat(e.conversationId as string)}
+          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+        >
+          <IconChat size={13} /> Chat
+        </button>
+      ) : undefined,
   }));
 }

@@ -11,6 +11,7 @@ import {
   StatusChip,
 } from '../../components/ui';
 import type { Segment } from '../../components/ui';
+import { OnboardingChecklist } from '../../components/OnboardingChecklist';
 import {
   IconQuotes,
   IconChevronRight,
@@ -77,6 +78,8 @@ export function MyQuotesPage() {
           </ButtonLink>
         }
       />
+
+      <OnboardingChecklist />
 
       {list.length === 0 ? (
         <EmptyState

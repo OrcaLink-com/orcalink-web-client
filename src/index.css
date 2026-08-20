@@ -30,3 +30,14 @@ body {
   background-size: 120px 120px, auto;
   background-position: center top, center top;
 }
+
+/* iOS: campo com fonte < 16px dispara zoom automático ao focar, o que desconfigura
+   o layout (a tela "cobre tudo" e volta larga com scroll horizontal). Forçar >=16px
+   no mobile evita o zoom sem mexer no viewport (mantém acessibilidade). */
+@media (max-width: 640px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
