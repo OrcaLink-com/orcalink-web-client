@@ -67,6 +67,7 @@ function ManageableVisitCard({ visit: v }: { visit: MyVisit }) {
         </p>
       </div>
       <VisitManageCard
+        visitId={v.id}
         type={v.type}
         scheduledAt={v.scheduledAt}
         onReschedule={async (iso, reason) => {

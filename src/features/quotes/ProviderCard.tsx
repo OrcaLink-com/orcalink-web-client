@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { LuBuilding2 } from 'react-icons/lu';
+import { LuBuilding2, LuFileText } from 'react-icons/lu';
 import { useAcceptProposal, useConfirmVisit, useRejectProposal } from '../../lib/queries';
+import { useAuth } from '../../auth/AuthContext';
 import { formatBRL, formatDateTime } from '../../lib/format';
 import { Avatar, Button, Card, RatingStars } from '../../components/ui';
 import {
@@ -14,6 +15,8 @@ import {
   IconProposal,
   IconWaiting,
 } from '../../components/icons';
+import { ProposalDocument } from '../../components/ProposalDocument';
+import { toProposalPayload } from './chatAdapter';
 import type { ConversationSummary, Visit } from '../../lib/types';
 
 /**
@@ -32,14 +35,18 @@ export function ProviderCard({
   /** Abre a conversa (drawer lateral). Recebe o id da conversa. */
   onOpenChat: (conversationId: string) => void;
 }) {
+  const { user: me } = useAuth();
   const accept = useAcceptProposal(quoteId);
   const reject = useRejectProposal(quoteId);
   const confirmVisit = useConfirmVisit(quoteId);
+  const [showDoc, setShowDoc] = useState(false);
 
   const proposal = conv.latestProposal;
   const visit = providerVisits[0];
   const isPreApproved = proposal?.type === 'PRE' && proposal.status === 'ACCEPTED';
-  const visitAwaitingClient = visit && (visit.status === 'SUGGESTED' || visit.status === 'RESCHEDULED');
+  // "Confirmar" só quando a última sugestão foi do profissional (é a vez do cliente).
+  const visitAwaitingClient =
+    visit && (visit.status === 'SUGGESTED' || visit.status === 'RESCHEDULED') && visit.lastActorId !== me?.id;
   const visitConfirmed = visit?.status === 'CONFIRMED' && visit.type === 'IN_LOCO';
   const visitDone = visit?.status === 'COMPLETED' && visit.type === 'IN_LOCO';
   const conversationEnded = conv.status !== 'ACTIVE';
@@ -53,6 +60,7 @@ export function ProviderCard({
   let color = 'text-text-muted';
   let primary: { label: string; onClick: () => void; disabled?: boolean } | null = null;
   let secondary: { label: string; onClick: () => void } | null = null;
+  let nextHint: string | null = null;
 
   if (wasContracted) {
     icon = <IconCelebrate size={sz} />;
@@ -74,6 +82,7 @@ export function ProviderCard({
     icon = <IconConfirmed size={sz} />;
     text = `Visita confirmada para ${formatDateTime(visit!.scheduledAt!)}`;
     color = 'text-success';
+    nextHint = 'Próximo passo: aguarde o profissional realizar a visita e enviar a proposta final.';
   } else if (visitAwaitingClient) {
     icon = <IconAgenda size={sz} />;
     text = `Visita ${visit!.status === 'SUGGESTED' ? 'agendada' : 'reagendada'} para ${formatDateTime(visit!.scheduledAt!)}`;
@@ -116,6 +125,7 @@ export function ProviderCard({
             {icon}
             <span className="truncate">{text}</span>
           </p>
+          {nextHint && <p className="mt-1 text-xs text-text-muted">{nextHint}</p>}
 
           {(primary || secondary) && (
             <div className="mt-3 flex gap-2">
@@ -133,6 +143,15 @@ export function ProviderCard({
           )}
 
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+            {proposal && (
+              <button
+                type="button"
+                onClick={() => setShowDoc(true)}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+              >
+                <LuFileText size={13} /> Ver proposta
+              </button>
+            )}
             <button
               type="button"
               onClick={() => onOpenChat(conv.id)}
@@ -155,6 +174,10 @@ export function ProviderCard({
           )}
         </div>
       </div>
+
+      {proposal && showDoc && (
+        <ProposalDocument open onClose={() => setShowDoc(false)} payload={toProposalPayload(proposal)} />
+      )}
     </Card>
   );
 }

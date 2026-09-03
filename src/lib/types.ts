@@ -391,6 +391,8 @@ export interface Visit {
   status: VisitStatus;
   scheduledAt: string | null;
   endsAt: string | null;
+  /** Quem fez a última sugestão/reagendamento (de quem é a vez de confirmar). */
+  lastActorId: string | null;
   createdAt: string;
 }
 

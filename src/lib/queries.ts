@@ -199,7 +199,10 @@ export function useConfirmVisit(quoteId: string) {
   return useMutation({
     mutationFn: (visitId: string) => api.confirmVisit(visitId),
     onSuccess: () => {
+      // O card de negociação depende de visitas + conversas + quote — invalida os três
+      // para refletir "Visita confirmada · aguarde a proposta" na hora (sem esperar o poll).
       void qc.invalidateQueries({ queryKey: queryKeys.visits(quoteId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.quoteConversations(quoteId) });
       void qc.invalidateQueries({ queryKey: queryKeys.quote(quoteId) });
     },
   });

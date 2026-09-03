@@ -20,6 +20,16 @@ const proposalOutcomePt: Record<string, string> = {
   FINISHED: 'concluída',
 };
 
+/** Marco do estágio atual do orçamento (só os pós-contratação; os demais já saem das visitas/propostas). */
+const STAGE_TITLE: Partial<Record<Quote['status'], string>> = {
+  WAITING_PAYMENT: 'Proposta aceita · aguardando pagamento',
+  PAID: 'Pagamento realizado',
+  EXECUTION_SCHEDULED: 'Execução agendada',
+  IN_PROGRESS: 'Serviço em execução',
+  FINISHED: 'Serviço concluído',
+  CANCELED: 'Orçamento cancelado',
+};
+
 /**
  * Histórico de auditoria do orçamento, montado do que já temos (criação + visitas +
  * propostas), com atribuição de prestador (pode haver vários). Sem endpoint dedicado.
@@ -30,7 +40,7 @@ const proposalOutcomePt: Record<string, string> = {
  * a negociação daquele prestador — ex.: a solicitação de visita leva direto ao chat.
  */
 export function buildQuoteTimeline(
-  quote: Pick<Quote, 'createdAt'>,
+  quote: Pick<Quote, 'createdAt' | 'status'>,
   convs: ConversationSummary[],
   visits: Visit[],
   onOpenChat?: (conversationId: string) => void,
@@ -42,6 +52,10 @@ export function buildQuoteTimeline(
   const raw: Array<{ at: string; title: string; by: string; body?: string; conversationId?: string }> = [];
 
   raw.push({ at: quote.createdAt, title: 'Orçamento criado', by: 'Você' });
+
+  // Marco do estágio atual (pagamento/execução/conclusão) — antes só aparecia no chat.
+  const stageTitle = STAGE_TITLE[quote.status];
+  if (stageTitle) raw.push({ at: new Date().toISOString(), title: stageTitle, by: 'Você' });
 
   for (const v of visits) {
     const at = v.scheduledAt ?? v.createdAt;

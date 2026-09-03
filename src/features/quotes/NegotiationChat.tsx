@@ -110,7 +110,10 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
       .filter((v) => v.providerId === conversation.counterpartId)
       .sort((a, b) => (b.scheduledAt ?? b.createdAt).localeCompare(a.scheduledAt ?? a.createdAt));
   }, [visitsQ.data, conversation]);
-  const awaitingVisit = providerVisits.find((v) => v.status === 'SUGGESTED' || v.status === 'RESCHEDULED');
+  // Só mostra o card de aceitar se a última sugestão foi do PROFISSIONAL (é a vez do cliente confirmar).
+  const awaitingVisit = providerVisits.find(
+    (v) => (v.status === 'SUGGESTED' || v.status === 'RESCHEDULED') && v.lastActorId !== user?.id,
+  );
   const hasCompletedVisit = providerVisits.some((v) => v.type === 'IN_LOCO' && v.status === 'COMPLETED');
   const hasConfirmedVisit = providerVisits.some((v) => v.type === 'IN_LOCO' && v.status === 'CONFIRMED');
 
@@ -384,6 +387,7 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
   const manageCard =
     manageableVisit && conversation?.status === 'ACTIVE' ? (
       <VisitManageCard
+        visitId={manageableVisit.id}
         type={manageableVisit.type}
         scheduledAt={manageableVisit.scheduledAt}
         onReschedule={async (iso, reason) => {
