@@ -12,12 +12,7 @@ import {
   StatusChip,
   Timeline,
 } from '../../components/ui';
-import {
-  IconBack,
-  IconHistory,
-  IconImages,
-  IconNegotiations,
-} from '../../components/icons';
+import { IconBack, IconHistory, IconNegotiations } from '../../components/icons';
 import { ProviderCard } from './ProviderCard';
 import { PaymentSection, ReviewSection } from './quoteSections';
 import { NegotiationDrawer } from './NegotiationDrawer';
@@ -83,8 +78,33 @@ export function QuoteDetailPage() {
           </div>
           <StatusChip status={quote.status} />
         </div>
-        <p className="text-sm text-text-muted">{quote.description}</p>
-        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+        <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-text-muted">{quote.description}</p>
+
+        {/* Fotos de referência do próprio pedido — logo abaixo da descrição (é o mesmo assunto). */}
+        {quote.images.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {quote.images.map((img) => (
+              <a
+                key={img.id}
+                href={img.url}
+                target="_blank"
+                rel="noreferrer"
+                className="block h-20 w-20 overflow-hidden rounded-medium border border-border"
+                title="Abrir imagem"
+              >
+                <img
+                  src={img.url}
+                  alt="Foto de referência do serviço"
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover transition-transform duration-200 hover:scale-105"
+                />
+              </a>
+            ))}
+          </div>
+        )}
+
+        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <Field label="Categoria" value={quote.category.name} />
           <Field label="Modo" value={quote.requiresVisit ? 'Com visita técnica' : 'À distância'} />
           {quote.budgetMaxCents != null && (
@@ -113,28 +133,6 @@ export function QuoteDetailPage() {
       {/* Pagamento / avaliação — aparecem conforme o status (após contratar) */}
       <PaymentSection quoteId={quoteId} status={quote.status} />
       <ReviewSection quoteId={quoteId} status={quote.status} />
-
-      {/* Imagens */}
-      <section>
-        <SectionHeader title="Imagens" />
-        {quote.images.length === 0 ? (
-          <EmptyState icon={<IconImages size={24} />} title="Sem imagens anexadas" />
-        ) : (
-          <div className="grid grid-cols-3 gap-2">
-            {quote.images.map((img) => (
-              <a key={img.id} href={img.url} target="_blank" rel="noreferrer">
-                <img
-                  src={img.url}
-                  alt="referência"
-                  loading="lazy"
-                  decoding="async"
-                  className="aspect-square w-full rounded-md object-cover"
-                />
-              </a>
-            ))}
-          </div>
-        )}
-      </section>
 
       {/* Negociações — cada card abre a conversa em um Drawer lateral */}
       <section className="space-y-3">

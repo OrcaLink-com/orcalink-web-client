@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { LuBuilding2, LuFileText } from 'react-icons/lu';
-import { useAcceptProposal, useConfirmVisit, useRejectProposal } from '../../lib/queries';
+import { useAcceptProposal, useCompleteVisit, useConfirmVisit, useRejectProposal } from '../../lib/queries';
 import { useAuth } from '../../auth/AuthContext';
 import { formatBRL, formatDateTime } from '../../lib/format';
 import { Avatar, Button, Card, RatingStars } from '../../components/ui';
@@ -39,6 +39,7 @@ export function ProviderCard({
   const accept = useAcceptProposal(quoteId);
   const reject = useRejectProposal(quoteId);
   const confirmVisit = useConfirmVisit(quoteId);
+  const completeVisit = useCompleteVisit(quoteId);
   const [showDoc, setShowDoc] = useState(false);
 
   const proposal = conv.latestProposal;
@@ -82,7 +83,13 @@ export function ProviderCard({
     icon = <IconConfirmed size={sz} />;
     text = `Visita confirmada para ${formatDateTime(visit!.scheduledAt!)}`;
     color = 'text-success';
-    nextHint = 'Próximo passo: aguarde o profissional realizar a visita e enviar a proposta final.';
+    // É a vez do CLIENTE: no dia da visita, confirmar que ela foi realizada libera a proposta final.
+    primary = {
+      label: 'Confirmar visita realizada',
+      onClick: () => completeVisit.mutate(visit!.id),
+      disabled: completeVisit.isPending,
+    };
+    nextHint = 'Depois que o profissional visitar, confirme aqui que a visita foi realizada — assim ele envia a proposta final.';
   } else if (visitAwaitingClient) {
     icon = <IconAgenda size={sz} />;
     text = `Visita ${visit!.status === 'SUGGESTED' ? 'agendada' : 'reagendada'} para ${formatDateTime(visit!.scheduledAt!)}`;
@@ -167,9 +174,9 @@ export function ProviderCard({
             </Link>
           </div>
 
-          {(accept.isError || reject.isError || confirmVisit.isError) && (
+          {(accept.isError || reject.isError || confirmVisit.isError || completeVisit.isError) && (
             <p className="mt-1 text-xs text-danger">
-              {((accept.error || reject.error || confirmVisit.error) as Error)?.message}
+              {((accept.error || reject.error || confirmVisit.error || completeVisit.error) as Error)?.message}
             </p>
           )}
         </div>

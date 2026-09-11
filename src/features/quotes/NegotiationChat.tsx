@@ -127,10 +127,6 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
         hasCompletedVisit,
         hasPendingVisit: Boolean(awaitingVisit),
         hasConfirmedVisit,
-        awaitingPaymentConfirm:
-          quoteStatus === 'PAID' &&
-          Boolean(conversation?.externalPayment) &&
-          !conversation?.externalPaymentConfirmedAt,
       })
     : null;
 

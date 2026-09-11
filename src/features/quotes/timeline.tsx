@@ -47,7 +47,6 @@ interface RawEvent {
 function stageMarkers(
   status: Quote['status'],
   hasExecutionVisit: boolean,
-  awaitingPaymentConfirm: boolean,
 ): Array<Omit<RawEvent, 'at' | 'by'>> {
   switch (status) {
     case 'PROVIDER_SELECTED':
@@ -61,15 +60,9 @@ function stageMarkers(
         },
       ];
     case 'PAID': {
+      // Modo indicação: NÃO exibimos nada de pagamento ao cliente (é tudo por fora).
       const markers: Array<Omit<RawEvent, 'at' | 'by'>> = [{ title: CONTRACTED_TITLE }];
-      if (awaitingPaymentConfirm) {
-        // Modo indicação: pagamento combinado por fora → aguardando o profissional confirmar.
-        markers.push({
-          title: 'Aguardando o profissional confirmar o recebimento do pagamento',
-          pending: true,
-          body: 'Combine o pagamento diretamente com o profissional. Ele confirma o recebimento para agendar a execução.',
-        });
-      } else if (!hasExecutionVisit) {
+      if (!hasExecutionVisit) {
         markers.push({
           title: 'Aguardando data de execução do serviço',
           pending: true,
@@ -112,15 +105,9 @@ export function buildQuoteTimeline(
   for (const c of convs) convByProvider.set(c.counterpartId, c.id);
 
   // Conversa contratada (proposta final aprovada) — alvo das ações pós-contratação.
-  const contractedConv = convs.find(
+  const contractedConvId = convs.find(
     (c) => c.latestProposal?.type === 'FINAL' && c.latestProposal.status === 'APPROVED',
-  );
-  const contractedConvId = contractedConv?.id;
-  // Modo indicação: contratado, mas o profissional ainda não confirmou o recebimento do pagamento.
-  const awaitingPaymentConfirm =
-    quote.status === 'PAID' &&
-    Boolean(contractedConv?.externalPayment) &&
-    !contractedConv?.externalPaymentConfirmedAt;
+  )?.id;
 
   const raw: RawEvent[] = [];
 
@@ -128,7 +115,7 @@ export function buildQuoteTimeline(
 
   // Marcos do estágio atual (contratação/execução/conclusão).
   const hasExecutionVisit = visits.some((v) => v.type === 'EXECUTION' && v.status !== 'CANCELED');
-  for (const m of stageMarkers(quote.status, hasExecutionVisit, awaitingPaymentConfirm)) {
+  for (const m of stageMarkers(quote.status, hasExecutionVisit)) {
     raw.push({ at: new Date().toISOString(), by: 'Você', ...m, conversationId: m.pending ? contractedConvId : undefined });
   }
 
