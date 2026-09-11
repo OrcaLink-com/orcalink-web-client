@@ -25,6 +25,7 @@ export function VisitRequestCard({ payload, onAccept, onDecline, onSuggest, mine
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const pending = payload.status === 'pending';
+  const isExecution = payload.kind === 'execution';
 
   const meta: MetaItem[] = [
     { icon: <LuCalendar size={15} />, label: 'Data sugerida', value: formatDate(payload.suggestedDate), emphasize: true },
@@ -35,9 +36,13 @@ export function VisitRequestCard({ payload, onAccept, onDecline, onSuggest, mine
     <BaseActionCard
       accent="green"
       icon={<LuCalendarClock size={22} />}
-      title="Solicitação de visita"
+      title={isExecution ? 'Data de execução do serviço' : 'Solicitação de visita'}
       subtitle={[payload.providerName, payload.serviceLabel].filter(Boolean).join(' · ')}
-      description="O prestador solicitou uma visita para avaliar o serviço."
+      description={
+        isExecution
+          ? 'O profissional propôs uma data para executar o serviço. Confirme para agendar.'
+          : 'O prestador solicitou uma visita para avaliar o serviço.'
+      }
       badge={BADGE[payload.status]}
       meta={meta}
       mine={mine}

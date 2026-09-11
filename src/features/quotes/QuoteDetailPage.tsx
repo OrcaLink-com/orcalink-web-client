@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { useQuote, useQuoteConversations, useVisits } from '../../lib/queries';
+import { useAuth } from '../../auth/AuthContext';
 import { useQuoteRealtime } from '../../lib/realtime';
 import { formatBRL, formatDateTime } from '../../lib/format';
 import {
@@ -31,6 +32,7 @@ import { buildQuoteTimeline } from './timeline';
  */
 export function QuoteDetailPage() {
   const { quoteId = '' } = useParams();
+  const { user } = useAuth();
   useQuoteRealtime(quoteId);
 
   const quoteQ = useQuote(quoteId);
@@ -58,8 +60,8 @@ export function QuoteDetailPage() {
   }, [openChat, location.pathname]);
 
   const timeline = useMemo(
-    () => (quote ? buildQuoteTimeline(quote, convs, visits, setOpenConv) : []),
-    [quote, convs, visits],
+    () => (quote ? buildQuoteTimeline(quote, convs, visits, setOpenConv, user?.id) : []),
+    [quote, convs, visits, user?.id],
   );
 
   if (quoteQ.isLoading) return <Spinner label="Carregando…" />;

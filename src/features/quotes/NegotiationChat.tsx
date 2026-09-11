@@ -127,6 +127,10 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
         hasCompletedVisit,
         hasPendingVisit: Boolean(awaitingVisit),
         hasConfirmedVisit,
+        awaitingPaymentConfirm:
+          quoteStatus === 'PAID' &&
+          Boolean(conversation?.externalPayment) &&
+          !conversation?.externalPaymentConfirmedAt,
       })
     : null;
 
@@ -173,6 +177,7 @@ export function NegotiationChat({ quoteId, conversationId, onBack }: Negotiation
           suggestedTime: timeOf(awaitingVisit.scheduledAt),
           providerName: peer.name,
           status: 'pending',
+          kind: awaitingVisit.type === 'EXECUTION' ? 'execution' : 'visit',
         },
       });
     }

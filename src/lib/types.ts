@@ -263,6 +263,10 @@ export interface ConversationSummary {
   counterpartAvatarUrl?: string;
   counterpartRating: number;
   counterpartRatingCount: number;
+  /** Modo indicação: contratado sem cobrança (pagamento por fora). */
+  externalPayment?: boolean;
+  /** Modo indicação: quando o profissional confirmou o recebimento do pagamento. */
+  externalPaymentConfirmedAt?: string;
   lastMessage?: Message;
   unreadCount: number;
   latestProposal?: Proposal;

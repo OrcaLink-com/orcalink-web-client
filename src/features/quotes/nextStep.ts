@@ -35,6 +35,8 @@ export interface NextStepInput {
   hasPendingVisit: boolean;
   /** Há visita técnica confirmada (aceita) aguardando ser realizada/confirmada pelo prestador. */
   hasConfirmedVisit: boolean;
+  /** Modo indicação: contratado, mas o profissional ainda não confirmou o recebimento do pagamento. */
+  awaitingPaymentConfirm?: boolean;
 }
 
 /** Nome da contraparte na frase ("o profissional" / "o cliente"). */
@@ -52,6 +54,7 @@ export function computeNextStep(input: NextStepInput): NextStep | null {
     hasCompletedVisit,
     hasPendingVisit,
     hasConfirmedVisit,
+    awaitingPaymentConfirm,
   } = input;
   const isClient = viewerRole === 'client';
   const other = counterpart(viewerRole);
@@ -153,6 +156,21 @@ export function computeNextStep(input: NextStepInput): NextStep | null {
       };
 
     case 'PAID':
+      // Modo indicação: contratado, mas o profissional ainda precisa confirmar o recebimento
+      // do pagamento (combinado por fora) antes de agendar a execução.
+      if (awaitingPaymentConfirm) {
+        return {
+          stageLabel: 'Contratado · aguardando confirmação de pagamento',
+          tone: 'amber',
+          youAct: !isClient,
+          actionText: isClient
+            ? `Aguardando ${other} confirmar o recebimento do pagamento`
+            : 'Confirme o recebimento do pagamento',
+          hintText: isClient
+            ? 'Combine o pagamento diretamente com o profissional.'
+            : 'Depois de confirmar, você agenda a data de execução.',
+        };
+      }
       return {
         stageLabel: paymentsEnabled ? 'Pagamento confirmado' : 'Contratado',
         tone: 'sky',

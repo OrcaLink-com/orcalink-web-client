@@ -122,6 +122,8 @@ export interface VisitRequestPayload {
   providerName: string;
   serviceLabel?: string;
   status: VisitStatus;
+  /** Tipo do agendamento: visita técnica (avaliar) ou data de execução do serviço. */
+  kind?: 'visit' | 'execution';
 }
 
 export type PaymentMethod = 'pix' | 'card' | 'boleto' | 'undefined';
