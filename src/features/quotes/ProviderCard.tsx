@@ -9,7 +9,6 @@ import {
   IconAgenda,
   IconCelebrate,
   IconChat,
-  IconChevronRight,
   IconClose,
   IconConfirmed,
   IconProposal,
@@ -149,28 +148,25 @@ export function ProviderCard({
             </div>
           )}
 
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button size="sm" startContent={<IconChat size={15} />} onClick={() => onOpenChat(conv.id)}>
+              Abrir conversa
+            </Button>
             {proposal && (
-              <button
-                type="button"
+              <Button
+                size="sm"
+                variant="secondary"
+                startContent={<LuFileText size={15} />}
                 onClick={() => setShowDoc(true)}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
               >
-                <LuFileText size={13} /> Ver proposta
-              </button>
+                Ver proposta
+              </Button>
             )}
-            <button
-              type="button"
-              onClick={() => onOpenChat(conv.id)}
-              className="inline-flex items-center gap-0.5 text-xs font-medium text-text-muted hover:text-foreground"
-            >
-              Abrir conversa <IconChevronRight size={13} />
-            </button>
             <Link
               to={`/app/prestador/${conv.counterpartId}`}
-              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+              className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-text-muted transition-colors hover:text-foreground"
             >
-              <LuBuilding2 size={13} /> Ver perfil da empresa
+              <LuBuilding2 size={13} /> Ver empresa
             </Link>
           </div>
 
