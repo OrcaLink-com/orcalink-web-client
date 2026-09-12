@@ -18,9 +18,11 @@ export function lazyPage<M, K extends keyof M>(
 ): LazyExoticComponent<M[K] extends ComponentType<infer _P> ? M[K] : never> {
   return lazy(async () => {
     try {
-      const mod = await factory();
-      const Comp = ((mod as Record<string, unknown>)[name as string] ??
-        (mod as { default?: unknown }).default) as ComponentType<unknown> | undefined;
+      // Chunk defasado pode resolver `undefined` — usar optional chaining evita o
+      // TypeError cru ("reading 'HomePage'") e cai no erro amigável + reload abaixo.
+      const mod = (await factory()) as Record<string, unknown> | undefined;
+      const Comp = (mod?.[name as string] ??
+        (mod as { default?: unknown } | undefined)?.default) as ComponentType<unknown> | undefined;
       if (!Comp) throw new Error(`Chunk "${String(name)}" carregou vazio (deploy defasado?).`);
       return { default: Comp };
     } catch (err) {

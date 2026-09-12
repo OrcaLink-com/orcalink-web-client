@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   LuArrowLeft,
@@ -9,6 +9,7 @@ import {
   LuImages,
   LuInstagram,
   LuMapPin,
+  LuMessageCircle,
   LuPhone,
   LuX,
 } from 'react-icons/lu';
@@ -121,6 +122,9 @@ export function ProviderProfilePage() {
         </Card>
       )}
 
+      {/* Contato — logo após a apresentação, para facilitar o primeiro contato. */}
+      <ContactCard p={p} />
+
       {/* Especialidades / categorias / cidades */}
       {(p.specialties.length > 0 || p.categories.length > 0 || p.citiesServed.length > 0) && (
         <Card className="space-y-4 p-4">
@@ -167,16 +171,6 @@ export function ProviderProfilePage() {
         )}
       </section>
 
-      {/* Contato */}
-      {(p.phone || p.social.whatsapp || p.social.website || p.social.instagram) && (
-        <Card className="space-y-2 p-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-text-muted">Contato</h2>
-          {p.phone && <ContactRow icon={<LuPhone size={14} />} label={p.phone} />}
-          {p.social.whatsapp && <ContactRow icon={<LuPhone size={14} />} label={`WhatsApp: ${p.social.whatsapp}`} />}
-          {p.social.instagram && <ContactRow icon={<LuInstagram size={14} />} label={p.social.instagram} />}
-          {p.social.website && <ContactRow icon={<LuGlobe size={14} />} label={p.social.website} href={ensureHttp(p.social.website)} />}
-        </Card>
-      )}
     </div>
   );
 }
@@ -219,7 +213,7 @@ function PortfolioPosts({ items }: { items: PortfolioItem[] }) {
   return (
     <section className="space-y-3">
       <h2 className="text-base font-semibold">Portfólio</h2>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {items.map((it, i) => {
           const photos = imagesOf(it);
           const cover = photos[0];
@@ -232,28 +226,26 @@ function PortfolioPosts({ items }: { items: PortfolioItem[] }) {
                 setIdx(0);
                 setPost(i);
               }}
-              className="group overflow-hidden rounded-2xl border border-border bg-content1 text-left shadow-card transition-shadow hover:shadow-pop"
+              className="group relative aspect-square overflow-hidden rounded-xl border border-border bg-content2 text-left"
             >
-              <div className="relative overflow-hidden">
-                <img
-                  src={cover}
-                  alt={it.title ?? ''}
-                  loading="lazy"
-                  className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                {photos.length > 1 && (
-                  <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur-sm">
-                    <LuImages size={12} /> {photos.length}
-                  </span>
-                )}
-                {(it.title || it.date) && (
-                  <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-3">
-                    {it.title && <p className="font-semibold text-white">{it.title}</p>}
-                    {it.date && <p className="text-[11px] text-white/70">{it.date}</p>}
-                  </div>
-                )}
-              </div>
-              {it.description && <p className="line-clamp-2 p-3 text-sm text-text-muted">{it.description}</p>}
+              <img
+                src={cover}
+                alt={it.title ?? ''}
+                loading="lazy"
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+              />
+              {/* escurece no hover para o título aparecer sempre legível */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent opacity-90 transition-opacity" />
+              {photos.length > 1 && (
+                <span className="absolute right-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-black/55 px-1.5 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+                  <LuImages size={11} /> {photos.length}
+                </span>
+              )}
+              {it.title && (
+                <p className="absolute inset-x-0 bottom-0 line-clamp-2 p-2 text-xs font-semibold leading-tight text-white">
+                  {it.title}
+                </p>
+              )}
             </button>
           );
         })}
@@ -343,19 +335,84 @@ function ChipRow({ title, items }: { title: string; items: string[] }) {
   );
 }
 
-function ContactRow({ icon, label, href }: { icon: React.ReactNode; label: string; href?: string }) {
-  const content = (
-    <span className="flex items-center gap-2 text-sm text-foreground/90">
-      <span className="text-text-muted">{icon}</span>
-      {label}
-    </span>
-  );
-  return href ? (
-    <a href={href} target="_blank" rel="noreferrer" className="hover:text-primary">
-      {content}
-    </a>
-  ) : (
-    content
+/** Canais de contato como "tiles" clicáveis (WhatsApp, telefone, Instagram, site). */
+function ContactCard({ p }: { p: PublicProviderProfile }) {
+  const wa = p.social.whatsapp ? p.social.whatsapp.replace(/\D/g, '') : '';
+  const ig = p.social.instagram
+    ? p.social.instagram
+        .replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')
+        .replace(/^@/, '')
+        .replace(/\/.*$/, '')
+    : '';
+  const channels: {
+    key: string;
+    icon: ReactNode;
+    label: string;
+    sub?: string;
+    href: string;
+    accent: string;
+  }[] = [];
+  if (wa)
+    channels.push({
+      key: 'wa',
+      icon: <LuMessageCircle size={18} />,
+      label: 'WhatsApp',
+      sub: p.social.whatsapp ?? undefined,
+      href: `https://wa.me/${wa}`,
+      accent: 'bg-emerald-500/15 text-emerald-400',
+    });
+  if (p.phone)
+    channels.push({
+      key: 'tel',
+      icon: <LuPhone size={18} />,
+      label: 'Telefone',
+      sub: p.phone,
+      href: `tel:${p.phone.replace(/\s/g, '')}`,
+      accent: 'bg-primary/15 text-primary',
+    });
+  if (ig)
+    channels.push({
+      key: 'ig',
+      icon: <LuInstagram size={18} />,
+      label: 'Instagram',
+      sub: `@${ig}`,
+      href: `https://instagram.com/${ig}`,
+      accent: 'bg-pink-500/15 text-pink-400',
+    });
+  if (p.social.website)
+    channels.push({
+      key: 'web',
+      icon: <LuGlobe size={18} />,
+      label: 'Site',
+      sub: p.social.website,
+      href: ensureHttp(p.social.website),
+      accent: 'bg-sky-500/15 text-sky-400',
+    });
+  if (channels.length === 0) return null;
+
+  return (
+    <Card className="p-4">
+      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-text-muted">Contato</h2>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {channels.map((c) => (
+          <a
+            key={c.key}
+            href={c.href}
+            target={c.href.startsWith('http') ? '_blank' : undefined}
+            rel="noreferrer"
+            className="group flex items-center gap-3 rounded-2xl border border-border bg-content2/40 p-3 transition-colors hover:border-primary/40 hover:bg-content2"
+          >
+            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${c.accent}`}>
+              {c.icon}
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold">{c.label}</span>
+              {c.sub && <span className="block truncate text-xs text-text-muted">{c.sub}</span>}
+            </span>
+          </a>
+        ))}
+      </div>
+    </Card>
   );
 }
 
