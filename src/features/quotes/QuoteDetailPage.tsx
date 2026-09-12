@@ -13,6 +13,7 @@ import {
   Timeline,
 } from '../../components/ui';
 import { IconBack, IconHistory, IconNegotiations } from '../../components/icons';
+import { QuotePhotos } from '../../components/QuotePhotos';
 import { ProviderCard } from './ProviderCard';
 import { PaymentSection, ReviewSection } from './quoteSections';
 import { NegotiationDrawer } from './NegotiationDrawer';
@@ -79,31 +80,6 @@ export function QuoteDetailPage() {
           <StatusChip status={quote.status} />
         </div>
         <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-text-muted">{quote.description}</p>
-
-        {/* Fotos de referência do próprio pedido — logo abaixo da descrição (é o mesmo assunto). */}
-        {quote.images.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {quote.images.map((img) => (
-              <a
-                key={img.id}
-                href={img.url}
-                target="_blank"
-                rel="noreferrer"
-                className="block h-20 w-20 overflow-hidden rounded-medium border border-border"
-                title="Abrir imagem"
-              >
-                <img
-                  src={img.url}
-                  alt="Foto de referência do serviço"
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover transition-transform duration-200 hover:scale-105"
-                />
-              </a>
-            ))}
-          </div>
-        )}
-
         <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <Field label="Categoria" value={quote.category.name} />
           <Field label="Modo" value={quote.requiresVisit ? 'Com visita técnica' : 'À distância'} />
@@ -128,6 +104,9 @@ export function QuoteDetailPage() {
             />
           </div>
         </dl>
+
+        {/* Fotos de referência do pedido — no fim do card, como carrossel + lightbox. */}
+        <QuotePhotos images={quote.images} />
       </Card>
 
       {/* Pagamento / avaliação — aparecem conforme o status (após contratar) */}
