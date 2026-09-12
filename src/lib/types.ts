@@ -272,10 +272,13 @@ export interface ConversationSummary {
   latestProposal?: Proposal;
 }
 
-/** Item de portfólio do prestador (perfil público). */
+/** Item de portfólio do prestador (perfil público) = um "post" com uma ou mais fotos. */
 export interface PortfolioItem {
   id?: string;
-  url: string;
+  /** Capa (= primeira foto). Compat. com portfólios antigos. */
+  url?: string;
+  /** Fotos do post (a 1ª é a capa). */
+  images?: string[];
   title?: string;
   description?: string;
   categoryId?: string;

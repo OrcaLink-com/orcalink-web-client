@@ -1,15 +1,20 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   LuArrowLeft,
   LuBadgeCheck,
+  LuChevronLeft,
+  LuChevronRight,
   LuGlobe,
+  LuImages,
   LuInstagram,
   LuMapPin,
   LuPhone,
+  LuX,
 } from 'react-icons/lu';
 import { useProviderPublicProfile } from '../../lib/queries';
 import { Avatar, Card, RatingStars, Spinner } from '../../components/ui';
-import type { PublicProviderProfile } from '../../lib/types';
+import type { PortfolioItem, PublicProviderProfile } from '../../lib/types';
 
 /** Perfil público da empresa do prestador — apresentação para o cliente confiar antes de contratar. */
 export function ProviderProfilePage() {
@@ -134,36 +139,8 @@ export function ProviderProfilePage() {
         </Card>
       )}
 
-      {/* Portfólio */}
-      {p.portfolio.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold">Portfólio</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {p.portfolio.map((it) => (
-              <div
-                key={it.id ?? it.url}
-                className="group overflow-hidden rounded-2xl border border-border bg-content1 shadow-card transition-shadow hover:shadow-pop"
-              >
-                <div className="overflow-hidden">
-                  <img
-                    src={it.url}
-                    alt={it.title ?? ''}
-                    loading="lazy"
-                    className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-                {(it.title || it.description || it.date) && (
-                  <div className="p-3">
-                    {it.title && <p className="font-semibold">{it.title}</p>}
-                    {it.description && <p className="mt-0.5 text-sm text-text-muted">{it.description}</p>}
-                    {it.date && <p className="mt-1 text-xs text-text-muted">{it.date}</p>}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Portfólio — cada trabalho é um post com várias fotos (abre em galeria). */}
+      {p.portfolio.length > 0 && <PortfolioPosts items={p.portfolio} />}
 
       {/* Avaliações */}
       <section className="space-y-3">
@@ -201,6 +178,150 @@ export function ProviderProfilePage() {
         </Card>
       )}
     </div>
+  );
+}
+
+/** Fotos de um post (compat: item antigo tinha só `url`). */
+function imagesOf(it: PortfolioItem): string[] {
+  return it.images?.length ? it.images : it.url ? [it.url] : [];
+}
+
+/** Portfólio em "posts": grade de capas → abre uma galeria (lightbox) com todas as fotos do post. */
+function PortfolioPosts({ items }: { items: PortfolioItem[] }) {
+  const [post, setPost] = useState<number | null>(null);
+  const [idx, setIdx] = useState(0);
+  const touchX = useRef<number | null>(null);
+
+  const openPost = post != null ? items[post] : null;
+  const imgs = openPost ? imagesOf(openPost) : [];
+  const count = imgs.length;
+
+  const close = useCallback(() => setPost(null), []);
+  const prev = useCallback(() => setIdx((i) => (i - 1 + count) % count), [count]);
+  const next = useCallback(() => setIdx((i) => (i + 1) % count), [count]);
+
+  useEffect(() => {
+    if (post == null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowLeft') prev();
+      else if (e.key === 'ArrowRight') next();
+    };
+    window.addEventListener('keydown', onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [post, close, prev, next]);
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-base font-semibold">Portfólio</h2>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {items.map((it, i) => {
+          const photos = imagesOf(it);
+          const cover = photos[0];
+          if (!cover) return null;
+          return (
+            <button
+              key={it.id ?? cover}
+              type="button"
+              onClick={() => {
+                setIdx(0);
+                setPost(i);
+              }}
+              className="group overflow-hidden rounded-2xl border border-border bg-content1 text-left shadow-card transition-shadow hover:shadow-pop"
+            >
+              <div className="relative overflow-hidden">
+                <img
+                  src={cover}
+                  alt={it.title ?? ''}
+                  loading="lazy"
+                  className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                {photos.length > 1 && (
+                  <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur-sm">
+                    <LuImages size={12} /> {photos.length}
+                  </span>
+                )}
+                {(it.title || it.date) && (
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-3">
+                    {it.title && <p className="font-semibold text-white">{it.title}</p>}
+                    {it.date && <p className="text-[11px] text-white/70">{it.date}</p>}
+                  </div>
+                )}
+              </div>
+              {it.description && <p className="line-clamp-2 p-3 text-sm text-text-muted">{it.description}</p>}
+            </button>
+          );
+        })}
+      </div>
+
+      {openPost && (
+        <div
+          className="fixed inset-0 z-[100] flex flex-col bg-black/95 backdrop-blur-sm"
+          onClick={close}
+          role="dialog"
+          aria-modal="true"
+          aria-label={openPost.title ?? 'Trabalho'}
+          onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
+          onTouchEnd={(e) => {
+            if (touchX.current == null) return;
+            const dx = e.changedTouches[0].clientX - touchX.current;
+            if (dx > 50) prev();
+            else if (dx < -50) next();
+            touchX.current = null;
+          }}
+        >
+          <button
+            onClick={close}
+            aria-label="Fechar"
+            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+          >
+            <LuX size={20} />
+          </button>
+          <div className="relative flex flex-1 items-center justify-center px-4">
+            {count > 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prev();
+                }}
+                aria-label="Foto anterior"
+                className="absolute left-3 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:left-6"
+              >
+                <LuChevronLeft size={24} />
+              </button>
+            )}
+            <img
+              src={imgs[idx]}
+              alt=""
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[75vh] max-w-[92vw] rounded-lg object-contain shadow-2xl"
+            />
+            {count > 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  next();
+                }}
+                aria-label="Próxima foto"
+                className="absolute right-3 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:right-6"
+              >
+                <LuChevronRight size={24} />
+              </button>
+            )}
+          </div>
+          <div className="shrink-0 space-y-1 px-5 pb-6 text-center text-white" onClick={(e) => e.stopPropagation()}>
+            {openPost.title && <p className="text-lg font-semibold">{openPost.title}</p>}
+            {openPost.description && <p className="mx-auto max-w-xl text-sm text-white/80">{openPost.description}</p>}
+            {count > 1 && <p className="text-xs text-white/60">{idx + 1} / {count}</p>}
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 

@@ -12,8 +12,8 @@ import {
   IconClose,
   IconConfirmed,
   IconProposal,
-  IconWaiting,
 } from '../../components/icons';
+import { Hourglass } from '../../components/Hourglass';
 import { ProposalDocument } from '../../components/ProposalDocument';
 import { toProposalPayload } from './chatAdapter';
 import type { ConversationSummary, Visit } from '../../lib/types';
@@ -76,8 +76,9 @@ export function ProviderCard({
     primary = { label: 'Aceitar', onClick: () => accept.mutate(proposal.id), disabled: accept.isPending };
     secondary = { label: 'Rejeitar', onClick: () => reject.mutate(proposal.id) };
   } else if (visitDone && !proposal) {
-    icon = <IconWaiting size={sz} />;
+    icon = <Hourglass size={17} />;
     text = 'Visita realizada · aguardando proposta final';
+    color = 'text-warning';
   } else if (visitConfirmed) {
     icon = <IconConfirmed size={sz} />;
     text = `Visita confirmada para ${formatDateTime(visit!.scheduledAt!)}`;
@@ -99,8 +100,9 @@ export function ProviderCard({
       onClick: () => onOpenChat(conv.id),
     };
   } else if (isPreApproved) {
-    icon = <IconWaiting size={sz} />;
+    icon = <Hourglass size={17} />;
     text = 'Estimativa aceita · aguardando agendamento da visita';
+    color = 'text-warning';
   } else if (proposal?.type === 'PRE' && proposal.status === 'PENDING') {
     const range =
       proposal.amountMinCents != null &&
