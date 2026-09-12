@@ -133,6 +133,7 @@ export function QuoteDetailPage() {
                   <ProviderCard
                     conv={c}
                     quoteId={quoteId}
+                    quoteStatus={quote.status}
                     providerVisits={myVisits}
                     onOpenChat={setOpenConv}
                   />

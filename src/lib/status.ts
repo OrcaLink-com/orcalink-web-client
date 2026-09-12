@@ -1,4 +1,5 @@
 import type { QuoteStatus } from './types';
+import { paymentsEnabled } from './flags';
 
 /** Rótulo legível, classe de fundo sólido (token) e variável CSS de cor por status. */
 export const QUOTE_STATUS_META: Record<
@@ -10,7 +11,8 @@ export const QUOTE_STATUS_META: Record<
   IN_NEGOTIATION: { label: 'Em negociação', className: 'bg-status-negotiation', varName: '--color-status-negotiation' },
   PROVIDER_SELECTED: { label: 'Profissional selecionado', className: 'bg-status-negotiation', varName: '--color-status-negotiation' },
   WAITING_PAYMENT: { label: 'Aguardando pagamento', className: 'bg-status-waiting', varName: '--color-status-waiting' },
-  PAID: { label: 'Pago', className: 'bg-status-paid', varName: '--color-status-paid' },
+  // Modo indicação: nunca dizer "Pago" (não há pagamento na plataforma) → "Contratado".
+  PAID: { label: paymentsEnabled ? 'Pago' : 'Contratado', className: 'bg-status-paid', varName: '--color-status-paid' },
   EXECUTION_SCHEDULED: { label: 'Agendado', className: 'bg-status-scheduled', varName: '--color-status-scheduled' },
   IN_PROGRESS: { label: 'Em andamento', className: 'bg-status-scheduled', varName: '--color-status-scheduled' },
   FINISHED: { label: 'Concluído', className: 'bg-status-finished', varName: '--color-status-finished' },

@@ -16,7 +16,7 @@ import {
 import { Hourglass } from '../../components/Hourglass';
 import { ProposalDocument } from '../../components/ProposalDocument';
 import { toProposalPayload } from './chatAdapter';
-import type { ConversationSummary, Visit } from '../../lib/types';
+import type { ConversationSummary, QuoteStatus, Visit } from '../../lib/types';
 
 /**
  * Card de uma negociação (prestador × orçamento) — autocontido: estado + ação inline.
@@ -25,11 +25,14 @@ import type { ConversationSummary, Visit } from '../../lib/types';
 export function ProviderCard({
   conv,
   quoteId,
+  quoteStatus,
   providerVisits,
   onOpenChat,
 }: {
   conv: ConversationSummary;
   quoteId: string;
+  /** Status atual do orçamento — usado para dizer, após contratar, de quem é a vez. */
+  quoteStatus?: QuoteStatus;
   providerVisits: Visit[];
   /** Abre a conversa (drawer lateral). Recebe o id da conversa. */
   onOpenChat: (conversationId: string) => void;
@@ -60,12 +63,28 @@ export function ProviderCard({
   let color = 'text-text-muted';
   let primary: { label: string; onClick: () => void; disabled?: boolean } | null = null;
   let secondary: { label: string; onClick: () => void } | null = null;
-  let nextHint: string | null = null;
+  let nextHint: ReactNode = null;
 
   if (wasContracted) {
     icon = <IconCelebrate size={sz} />;
     text = 'Você contratou este profissional';
     color = 'text-success';
+    // Contratado, mas ainda pendente do PROFISSIONAL → mostra "aguardando" com ampulheta.
+    const waitingProvider =
+      quoteStatus === 'PAID'
+        ? 'Aguardando o profissional agendar a execução'
+        : quoteStatus === 'EXECUTION_SCHEDULED'
+          ? 'Aguardando o profissional iniciar o serviço na data combinada'
+          : null;
+    if (waitingProvider) {
+      nextHint = (
+        <span className="inline-flex items-center gap-1.5 font-medium text-warning">
+          <Hourglass size={14} /> {waitingProvider}
+        </span>
+      );
+    } else if (quoteStatus === 'IN_PROGRESS') {
+      nextHint = 'Serviço em execução. Confirme a conclusão quando terminar.';
+    }
   } else if (wasNotPicked) {
     icon = <IconClose size={sz} />;
     text = 'Encerrado — você contratou outro profissional';
@@ -133,7 +152,7 @@ export function ProviderCard({
             {icon}
             <span className="truncate">{text}</span>
           </p>
-          {nextHint && <p className="mt-1 text-xs text-text-muted">{nextHint}</p>}
+          {nextHint && <div className="mt-1 text-xs text-text-muted">{nextHint}</div>}
 
           {(primary || secondary) && (
             <div className="mt-3 flex gap-2">
